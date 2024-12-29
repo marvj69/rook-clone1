@@ -45,7 +45,7 @@
   </style>
 </head>
 <body class="bg-gray-100 text-gray-800 min-h-screen">
-  <div id="app" class="max-w-4xl mx-auto p-6 space-y-6"></div>
+  <div id="app" class="max-w-4xl mx-auto p-4 sm:p-6 space-y-6"></div>
 
   <!-- Saved Games Modal -->
   <div
@@ -300,6 +300,7 @@
 
     function handlePointsChange(e) {
       ephemeralPoints = e.target.value;
+      updateState({ points: ephemeralPoints });
     }
 
     function finalizePoints() {
@@ -625,24 +626,34 @@
       const isSelected = state.biddingTeam === team;
       const bgColor = isSelected ? `${colorClass}-200` : `${colorClass}-100`;
       const hoverBgColor = isSelected ? `${colorClass}-300` : `${colorClass}-200`;
-      const textColor = `${colorClass}-700`;
-      const selectedTextColor = `${colorClass}-900`;
-      const borderClass = isSelected ? `border-4 border-${colorClass}-600` : 'border';
+      const predefinedTextColor = isSelected ? `${colorClass}-900` : `${colorClass}-700`;
 
       return `
         <div
           class="bg-${bgColor} cursor-pointer hover:bg-${hoverBgColor} transition-colors
-                 rounded-lg shadow-md p-6 flex flex-col items-center space-y-3 ${borderClass} focus:outline-none focus:ring-2 focus:ring-${colorClass}-500 focus:border-transparent focus-outline"
+                 rounded-lg shadow-md p-4 flex flex-col items-center space-y-2 border ${isSelected ? `border-${colorClass}-600` : 'border-gray-300'} flex-1 min-w-0"
           onclick="handleTeamClick('${team}')"
           tabindex="0"
           role="button"
           aria-pressed="${isSelected}"
           aria-label="Select ${team === 'us' ? 'Our Team' : 'Dem Team'}"
         >
-          <h2 class="text-2xl font-semibold text-${isSelected ? selectedTextColor : textColor} capitalize">
+          <h2 class="text-xl font-semibold text-${predefinedTextColor} capitalize">
             ${team === 'us' ? 'Us' : 'Dem'}
           </h2>
-          <p class="text-4xl font-bold text-${isSelected ? selectedTextColor : textColor}">${total}</p>
+          <p class="text-3xl font-bold text-${predefinedTextColor}">${total}</p>
+        </div>
+      `;
+    }
+
+    function renderRoundCard(currentRound, bidDisplay) {
+      return `
+        <div class="bg-white border border-gray-200 rounded-lg shadow flex flex-col items-center justify-center p-4 flex-1 min-w-0">
+          <div class="text-center space-y-1">
+            <h2 class="text-2xl font-bold text-gray-700">Round</h2>
+            <p class="text-4xl font-extrabold text-gray-900">${currentRound}</p>
+            ${bidDisplay}
+          </div>
         </div>
       `;
     }
@@ -810,24 +821,24 @@
       const { rounds } = state;
       return `
         <div class="bg-white border border-gray-200 rounded-lg shadow-lg">
-          <div class="border-b border-gray-200 p-5">
-            <h2 class="text-xl font-bold">History</h2>
-            <div class="grid grid-cols-3 gap-4 pt-4 font-medium text-gray-600">
+          <div class="border-b border-gray-200 p-4">
+            <h2 class="text-lg font-bold">History</h2>
+            <div class="grid grid-cols-3 gap-2 pt-3 font-medium text-gray-600 text-sm sm:text-base">
               <div class="text-left">Us</div>
               <div class="text-center">Bid</div>
               <div class="text-right">Dem</div>
             </div>
           </div>
-          <div class="p-5">
-            <div class="space-y-3">
+          <div class="p-4">
+            <div class="space-y-2">
               ${rounds.map((round, index) => {
                 const arrow = round.biddingTeam === 'us'
-                  ? `<span class="text-gray-800">←</span><span class="ml-2">${round.bidAmount}</span>`
-                  : `<span class="mr-2">${round.bidAmount}</span><span class="text-gray-800">→</span>`;
+                  ? `<span class="text-gray-800">←</span><span class="ml-1">${round.bidAmount}</span>`
+                  : `<span class="mr-1">${round.bidAmount}</span><span class="text-gray-800">→</span>`;
                 return `
-                  <div key=${index} class="grid grid-cols-3 gap-4 p-3 bg-gray-50 rounded-lg animate-fade-in">
+                  <div key=${index} class="grid grid-cols-3 gap-2 p-2 bg-gray-50 rounded-lg animate-fade-in text-sm sm:text-base">
                     <div class="text-left text-gray-800 font-semibold">${round.runningTotals.us}</div>
-                    <div class="flex items-center justify-center text-sm">${arrow}</div>
+                    <div class="flex items-center justify-center">${arrow}</div>
                     <div class="text-right text-gray-800 font-semibold">${round.runningTotals.Dem}</div>
                   </div>
                 `;
@@ -880,7 +891,7 @@
       if (lastBidAmount && lastBidTeam) {
         const arrow = lastBidTeam === 'us' ? '←' : '→';
         bidDisplay = `
-          <div class="mt-2 flex items-center justify-center space-x-2">
+          <div class="mt-2 flex items-center justify-center space-x-1">
             <span class="font-medium">Bid:</span>
             <span>${lastBidAmount}</span>
             <span>${arrow}</span>
@@ -893,23 +904,23 @@
         <div class="text-center space-y-2">
           <div class="flex flex-col items-center">
             ${Icons.Trophy}
-            <h1 class="text-5xl font-extrabold text-gray-800">Rook</h1>
+            <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-800">Rook!</h1>
           </div>
-          <p class="text-lg text-gray-600">Track and manage your game scores effortlessly.</p>
-          <div class="flex justify-center space-x-4 mt-6">
+          <p class="text-md sm:text-lg text-gray-600">Tap on a team to start a bid!</p>
+          <div class="flex justify-center space-x-4 mt-4">
             <button
               onclick="openSavedGamesModal()"
-              class="bg-green-600 text-white px-6 py-3 rounded-lg shadow
+              class="bg-green-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg shadow
                      hover:bg-green-700 focus:outline-none focus:ring-2
-                     focus:ring-green-500 transition"
+                     focus:ring-green-500 transition text-sm sm:text-base"
             >
               View Saved Games
             </button>
             <button
               onclick="handleFreezerGame()"
-              class="bg-yellow-600 text-white px-6 py-3 rounded-lg shadow
+              class="bg-yellow-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg shadow
                      hover:bg-yellow-700 focus:outline-none focus:ring-2
-                     focus:ring-yellow-500 transition"
+                     focus:ring-yellow-500 transition text-sm sm:text-base"
             >
               Freeze Game
             </button>
@@ -917,7 +928,7 @@
         </div>
 
         <!-- Teams and Round -->
-        <div class="flex flex-row space-x-6 overflow-x-auto no-scrollbar">
+        <div class="flex flex-row space-x-4 flex-wrap">
           ${renderTeamCard('us', totals.us, 'blue')}
           ${renderRoundCard(currentRound, bidDisplay)}
           ${renderTeamCard('Dem', totals.Dem, 'red')}
@@ -937,22 +948,6 @@
       `;
     }
 
-    // Helper function to render the Round card separately for better control
-    function renderRoundCard(currentRound, bidDisplay) {
-      return `
-        <div class="bg-white border border-gray-200 rounded-lg shadow flex flex-col items-center justify-center p-6 min-w-[200px]">
-          <div class="text-center space-y-2">
-            <h2 class="text-3xl font-bold text-gray-700">Round</h2>
-            <p class="text-5xl font-extrabold text-gray-900">${currentRound}</p>
-            ${bidDisplay}
-          </div>
-        </div>
-      `;
-    }
-
-    // Initial render
-    renderApp();
-
     /********************************************************
      * Accessibility: Close Modal with Escape Key
      ********************************************************/
@@ -971,6 +966,9 @@
         closeBtn.addEventListener('click', closeSavedGamesModal);
       }
     });
+
+    // Initial render
+    renderApp();
 
   </script>
 </body>
