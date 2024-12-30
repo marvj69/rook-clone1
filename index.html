@@ -294,101 +294,128 @@
     }
 
     function handleFormSubmit(e) {
-      e.preventDefault();
-      // Removed finalizeCustomBid and finalizePoints to prevent interfering with form submission
+  e.preventDefault();
 
-      const { biddingTeam, bidAmount, rounds, enterBidderPoints } = state;
-      const points = document.getElementById('pointsInput').value;
+  const { biddingTeam, bidAmount, rounds, enterBidderPoints } = state;
+  const pointsInput = document.getElementById('pointsInput');
+  
+  if (!pointsInput) {
+    updateState({ error: 'Points input field not found.' });
+    return;
+  }
 
-      if (!biddingTeam || !bidAmount) {
-        updateState({ error: 'Please select both team and bid.' });
-        return;
-      }
-      const bidError = validateBid(bidAmount);
-      const pointsError = validatePoints(points);
-      if (bidError || pointsError) {
-        updateState({ error: bidError || pointsError });
-        return;
-      }
+  const points = pointsInput.value;
 
-      const bid = +bidAmount;
-      const pointsValue = +points;
-      const bidderPoints = enterBidderPoints
-        ? pointsValue
-        : pointsValue === 360
-        ? 360
-        : 180 - pointsValue;
-      const nonBidderPoints = pointsValue === 360 ? 0 : 180 - bidderPoints;
+  if (!biddingTeam || !bidAmount) {
+    updateState({ error: 'Please select both team and bid.' });
+    return;
+  }
 
-      const usPoints = biddingTeam === 'us'
-        ? (bidderPoints < bid ? -bid : bidderPoints)
-        : nonBidderPoints;
-      const DemPoints = biddingTeam === 'Dem'
-        ? (bidderPoints < bid ? -bid : bidderPoints)
-        : nonBidderPoints;
+  const bidError = validateBid(bidAmount);
+  const pointsError = validatePoints(points);
 
-      const prevTotals = rounds.length ? rounds[rounds.length - 1].runningTotals : { us: 0, Dem: 0 };
-      const newRunningTotals = {
-        us: prevTotals.us + usPoints,
-        Dem: prevTotals.Dem + DemPoints
-      };
+  if (bidError || pointsError) {
+    updateState({ error: bidError || pointsError });
+    return;
+  }
 
-      const newRounds = [
-        ...rounds,
-        {
-          biddingTeam,
-          bidAmount: bid,
-          usPoints,
-          DemPoints,
-          runningTotals: newRunningTotals,
-        }
-      ];
+  const bid = Number(bidAmount);
+  const pointsValue = Number(points);
 
-      const wonOnBid = biddingTeam === 'us'
-        ? usPoints >= bid && usPoints > 0
-        : DemPoints >= bid && DemPoints > 0;
-      const setOtherTeam = biddingTeam === 'us' ? DemPoints < 0 : usPoints < 0;
+  const bidderPoints = enterBidderPoints
+    ? pointsValue
+    : pointsValue === 360
+      ? 360
+      : 180 - pointsValue;
 
-      const pointSpread = Math.abs(newRunningTotals.us - newRunningTotals.Dem);
-      const spreadWinner = newRunningTotals.us > newRunningTotals.Dem ? 'us' : 'Dem';
-      const spreadCondition = pointSpread >= 1000;
+  const nonBidderPoints = pointsValue === 360 ? 0 : 180 - bidderPoints;
 
-      let gameEnded = false;
-      let finalWinner = null;
-      let endReason = '';
+  const usPoints = biddingTeam === 'us'
+    ? (bidderPoints < bid ? -bid : bidderPoints)
+    : nonBidderPoints;
 
-      if (
-        ((biddingTeam === 'us' && newRunningTotals.us >= 500) ||
-         (biddingTeam === 'Dem' && newRunningTotals.Dem >= 500)) &&
-        (wonOnBid || setOtherTeam)
-      ) {
-        gameEnded = true;
-        finalWinner = biddingTeam;
-        endReason = 'reached 500 points';
-      } else if (spreadCondition) {
-        gameEnded = true;
-        finalWinner = spreadWinner;
-        endReason = 'a 1000-point spread';
-      }
+  const DemPoints = biddingTeam === 'Dem'
+    ? (bidderPoints < bid ? -bid : bidderPoints)
+    : nonBidderPoints;
 
-      ephemeralCustomBid = '';
-      ephemeralPoints = '';
-      if (gameEnded) {
-        alert(`Game Over! ${finalWinner === 'us' ? 'Our Team' : 'Dem Team'} wins by ${endReason}.`);
-      }
+  const prevTotals = rounds.length ? rounds[rounds.length - 1].runningTotals : { us: 0, Dem: 0 };
+  const newRunningTotals = {
+    us: prevTotals.us + usPoints,
+    Dem: prevTotals.Dem + DemPoints
+  };
 
-      updateState({
-        rounds: newRounds,
-        gameOver: gameEnded,
-        winner: finalWinner,
-        biddingTeam: '',
-        bidAmount: '',
-        showCustomBid: false,
-        customBidValue: '',
-        enterBidderPoints: false,
-        error: ''
-      });
+  const newRounds = [
+    ...rounds,
+    {
+      biddingTeam,
+      bidAmount: bid,
+      usPoints,
+      DemPoints,
+      runningTotals: newRunningTotals,
     }
+  ];
+
+  const wonOnBid = biddingTeam === 'us'
+    ? usPoints >= bid && usPoints > 0
+    : DemPoints >= bid && DemPoints > 0;
+
+  const setOtherTeam = biddingTeam === 'us' ? DemPoints < 0 : usPoints < 0;
+
+  const pointSpread = Math.abs(newRunningTotals.us - newRunningTotals.Dem);
+  const spreadWinner = newRunningTotals.us > newRunningTotals.Dem ? 'us' : 'Dem';
+  const spreadCondition = pointSpread >= 1000;
+
+  // **New Variables for Additional Win Condition**
+  const otherTeam = biddingTeam === 'us' ? 'Dem' : 'us';
+  const otherTeamTotal = newRunningTotals[otherTeam];
+  const biddingTeamFailedBid = biddingTeam === 'us' ? usPoints < 0 : DemPoints < 0;
+
+  let gameEnded = false;
+  let finalWinner = null;
+  let endReason = '';
+
+  // **Updated Win Conditions**
+  if (
+    ((biddingTeam === 'us' && newRunningTotals.us >= 500) ||
+     (biddingTeam === 'Dem' && newRunningTotals.Dem >= 500)) &&
+    (wonOnBid || setOtherTeam)
+  ) {
+    gameEnded = true;
+    finalWinner = biddingTeam;
+    endReason = 'reached 500 points';
+  } 
+  // **New Win Condition: Bidding Team Failed Bid and Other Team >= 500**
+  else if (biddingTeamFailedBid && otherTeamTotal >= 500) {
+    gameEnded = true;
+    finalWinner = otherTeam;
+    endReason = `${otherTeam} reached 500 points after ${biddingTeam === 'us' ? 'our team' : 'Dem team'} failed their bid`;
+  }
+  else if (spreadCondition) {
+    gameEnded = true;
+    finalWinner = spreadWinner;
+    endReason = 'a 1000-point spread';
+  }
+
+  ephemeralCustomBid = '';
+  ephemeralPoints = '';
+
+  if (gameEnded) {
+    alert(`Game Over! ${finalWinner === 'us' ? 'Our Team' : 'Dem Team'} wins by ${endReason}.`);
+  }
+
+  updateState({
+    rounds: newRounds,
+    gameOver: gameEnded,
+    winner: finalWinner,
+    biddingTeam: '',
+    bidAmount: '',
+    showCustomBid: false,
+    customBidValue: '',
+    enterBidderPoints: false,
+    error: ''
+  });
+}
+
 
     function handleUndo() {
       if (!state.rounds.length) return;
