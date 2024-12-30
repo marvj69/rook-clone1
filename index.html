@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Rook - Game Scoring Screen</title>
-  <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @keyframes fadeIn {
@@ -47,7 +46,6 @@
 <body class="bg-gray-100 text-gray-800 min-h-screen">
   <div id="app" class="max-w-4xl mx-auto p-4 sm:p-6 space-y-6"></div>
 
-  <!-- Saved Games Modal -->
   <div
     id="savedGamesModal"
     class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4"
@@ -59,7 +57,6 @@
       <div class="flex justify-between items-center p-5 border-b border-gray-200">
         <h3 id="savedGamesTitle" class="text-2xl font-semibold">Saved Games</h3>
         <button id="closeSavedGamesModalBtn" class="text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Close Saved Games Modal">
-          <!-- Close Icon -->
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round"
@@ -94,11 +91,6 @@
              viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <circle cx="12" cy="12" r="10" />
           <path d="M12 8v4m0 4h.01" />
-        </svg>
-      `,
-      Trophy: `
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-yellow-400 mx-auto mb-4 animate-fade-in" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <path d="M8 21h8m-8 0a4 4 0 0 1-4-4V6h16v11a4 4 0 0 1-4 4m-8 0v-4h8v4M5 10h1M18 10h1M8 4v1m8-1v1" />
         </svg>
       `,
       Undo: `
@@ -185,7 +177,6 @@
       const num = +value;
       if (isNaN(num)) return 'Points must be a number';
       if (num < 0) return 'Points cannot be negative';
-      if (num % 5 !== 0) return 'Bid must be divisible by 5';
       if (num > 180 && num !== 360) return 'Points must be 0-180 or 360';
       return '';
     }
@@ -270,26 +261,25 @@
     }
 
     function handleCustomBidChange(e) {
-  ephemeralCustomBid = e.target.value;
-  const validationError = validateBid(ephemeralCustomBid);
-  
-  if (validationError === '') {
-    updateState({
-      customBidValue: ephemeralCustomBid,
-      bidAmount: ephemeralCustomBid, // Set bidAmount to the valid custom bid
-      lastBidAmount: ephemeralCustomBid,
-      lastBidTeam: state.biddingTeam
-    });
-  } else {
-    updateState({
-      customBidValue: ephemeralCustomBid,
-      bidAmount: '', // Clear bidAmount if the custom bid is invalid
-      lastBidAmount: null,
-      lastBidTeam: null
-    });
-  }
-}
-
+      ephemeralCustomBid = e.target.value;
+      const validationError = validateBid(ephemeralCustomBid);
+      
+      if (validationError === '') {
+        updateState({
+          customBidValue: ephemeralCustomBid,
+          bidAmount: ephemeralCustomBid, // Set bidAmount to the valid custom bid
+          lastBidAmount: ephemeralCustomBid,
+          lastBidTeam: state.biddingTeam
+        });
+      } else {
+        updateState({
+          customBidValue: ephemeralCustomBid,
+          bidAmount: '', // Clear bidAmount if the custom bid is invalid
+          lastBidAmount: null,
+          lastBidTeam: null
+        });
+      }
+    }
 
     function handleBiddingPointsToggle(isBidder) {
       ephemeralPoints = '';
@@ -718,6 +708,8 @@
               <input
                 id="pointsInput"
                 type="number"
+                inputmode="numeric"       
+                pattern="[0-9]*"          
                 min="0"
                 max="360"
                 placeholder="Enter points"
@@ -760,7 +752,6 @@
           </div>
           <div class="p-6 score-input-container ${state.biddingTeam ? 'show' : ''}">
             <form onsubmit="handleFormSubmit(event)" class="space-y-6">
-              <!-- Bid Amount -->
               <div>
                 <label for="bidAmount" class="block text-sm font-medium mb-2">Bid Amount</label>
                 <div class="flex flex-wrap gap-3">
@@ -791,6 +782,8 @@
                       <div class="mt-4 flex flex-col sm:flex-row sm:items-center sm:gap-4">
                         <input
                           type="number"
+                          inputmode="numeric"       
+                          pattern="[0-9]*"          
                           step="5"
                           value="${customBidValue}"
                           onchange="handleCustomBidChange(event)"
@@ -805,10 +798,7 @@
                     : ''
                 }
               </div>
-
-              <!-- Points Input -->
               ${showPointsSection ? renderPointsInput() : ''}
-
             </form>
           </div>
         </div>
@@ -897,9 +887,11 @@
       }
 
       document.getElementById('app').innerHTML = `
-        <!-- Title and Buttons -->
+      
         <div class="text-center space-y-2">
           <div class="flex flex-col items-center">
+          
+            <!-- ${Icons.Trophy} -->
             <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-800">Rook!</h1>
           </div>
           <p class="text-md sm:text-lg text-gray-600">Tap a team to start a bid!</p>
@@ -923,7 +915,7 @@
           </div>
         </div>
 
-        <!-- Teams and Round -->
+      
         <div class="flex flex-row space-x-4 flex-wrap">
           ${renderTeamCard('us', totals.us, 'blue')}
           ${renderRoundCard(currentRound, bidDisplay)}
