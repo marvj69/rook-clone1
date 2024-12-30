@@ -184,6 +184,7 @@
       const num = +value;
       if (isNaN(num)) return 'Points must be a number';
       if (num < 0) return 'Points cannot be negative';
+      if (num % 5 !== 0) return 'Points must be divisible by 5';
       if (num > 180 && num !== 360) return 'Points must be 0-180 or 360';
       return '';
     }
