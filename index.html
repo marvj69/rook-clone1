@@ -133,7 +133,6 @@
       bidAmount: '',
       customBidValue: '',
       showCustomBid: false,
-      points: '',
       enterBidderPoints: false,
       error: '',
       gameOver: false,
@@ -186,6 +185,7 @@
       const num = +value;
       if (isNaN(num)) return 'Points must be a number';
       if (num < 0) return 'Points cannot be negative';
+      if (num % 5 !== 0) return 'Bid must be divisible by 5';
       if (num > 180 && num !== 360) return 'Points must be 0-180 or 360';
       return '';
     }
@@ -196,7 +196,7 @@
     }
 
     /********************************************************
-     * Event Handlers (Click, Change, Submit)
+     * Event Handlers (Click, Submit)
      ********************************************************/
     function handleTeamClick(team) {
       if (state.gameOver) return;
@@ -208,7 +208,6 @@
             bidAmount: state.bidAmount,
             customBidValue: state.customBidValue,
             showCustomBid: state.showCustomBid,
-            points: state.points,
             enterBidderPoints: state.enterBidderPoints,
             error: state.error
           };
@@ -216,9 +215,9 @@
           updateState({
             biddingTeam: '',
             bidAmount: '',
-            points: '',
             showCustomBid: false,
             customBidValue: '',
+            enterBidderPoints: false,
             error: ''
           });
         }
@@ -231,9 +230,9 @@
         let newState = {
           biddingTeam: team,
           bidAmount: '',
-          points: '',
           showCustomBid: false,
           customBidValue: '',
+          enterBidderPoints: false,
           error: ''
         };
 
@@ -271,48 +270,39 @@
     }
 
     function handleCustomBidChange(e) {
-      ephemeralCustomBid = e.target.value;
-      updateState({ customBidValue: ephemeralCustomBid });
-      // Update last bid immediately as 'other' is being entered
-      if (validateBid(ephemeralCustomBid) === '') {
-        updateState({ lastBidAmount: ephemeralCustomBid, lastBidTeam: state.biddingTeam });
-      } else {
-        updateState({ lastBidAmount: null, lastBidTeam: null });
-      }
-    }
+  ephemeralCustomBid = e.target.value;
+  const validationError = validateBid(ephemeralCustomBid);
+  
+  if (validationError === '') {
+    updateState({
+      customBidValue: ephemeralCustomBid,
+      bidAmount: ephemeralCustomBid, // Set bidAmount to the valid custom bid
+      lastBidAmount: ephemeralCustomBid,
+      lastBidTeam: state.biddingTeam
+    });
+  } else {
+    updateState({
+      customBidValue: ephemeralCustomBid,
+      bidAmount: '', // Clear bidAmount if the custom bid is invalid
+      lastBidAmount: null,
+      lastBidTeam: null
+    });
+  }
+}
 
-    function finalizeCustomBid() {
-      const num = +ephemeralCustomBid;
-      let newBidAmount = '';
-      if (!isNaN(num) && num % 5 === 0 && (num <= 180 || num === 360)) {
-        newBidAmount = ephemeralCustomBid;
-        updateState({ lastBidAmount: newBidAmount, lastBidTeam: state.biddingTeam });
-      } else {
-        updateState({ lastBidAmount: null, lastBidTeam: null });
-      }
-      updateState({ customBidValue: ephemeralCustomBid, bidAmount: newBidAmount });
-    }
 
     function handleBiddingPointsToggle(isBidder) {
       ephemeralPoints = '';
-      updateState({ enterBidderPoints: isBidder, points: '' });
-    }
-
-    function handlePointsChange(e) {
-      ephemeralPoints = e.target.value;
-      updateState({ points: ephemeralPoints });
-    }
-
-    function finalizePoints() {
-      updateState({ points: ephemeralPoints });
+      updateState({ enterBidderPoints: isBidder });
     }
 
     function handleFormSubmit(e) {
       e.preventDefault();
-      if (state.showCustomBid) finalizeCustomBid();
-      finalizePoints();
+      // Removed finalizeCustomBid and finalizePoints to prevent interfering with form submission
 
-      const { biddingTeam, bidAmount, points, rounds, enterBidderPoints } = state;
+      const { biddingTeam, bidAmount, rounds, enterBidderPoints } = state;
+      const points = document.getElementById('pointsInput').value;
+
       if (!biddingTeam || !bidAmount) {
         updateState({ error: 'Please select both team and bid.' });
         return;
@@ -396,9 +386,9 @@
         winner: finalWinner,
         biddingTeam: '',
         bidAmount: '',
-        points: '',
         showCustomBid: false,
         customBidValue: '',
+        enterBidderPoints: false,
         error: ''
       });
     }
@@ -606,9 +596,9 @@
         winner: null,
         biddingTeam: '',
         bidAmount: '',
-        points: '',
         showCustomBid: false,
         customBidValue: '',
+        enterBidderPoints: false,
         error: '',
         lastBidAmount: null,
         lastBidTeam: null
@@ -668,7 +658,7 @@
     }
 
     function renderPointsInput() {
-      const { biddingTeam, enterBidderPoints, points } = state;
+      const { biddingTeam, enterBidderPoints } = state;
       const labelText =
         biddingTeam === 'us'
           ? enterBidderPoints
@@ -677,6 +667,18 @@
           : enterBidderPoints
             ? 'Dem Points (Bidding Team)'
             : 'Our Points (Non-Bidding Team)';
+
+      // Determine button colors based on bidding team
+      let biddingTeamColor = 'blue'; // default
+      let nonBiddingTeamColor = 'red'; // default
+
+      if (biddingTeam === 'Dem') {
+        biddingTeamColor = 'red';
+        nonBiddingTeamColor = 'blue';
+      } else if (biddingTeam === 'us') {
+        biddingTeamColor = 'blue';
+        nonBiddingTeamColor = 'red';
+      }
 
       return `
         <div class="space-y-6">
@@ -687,9 +689,9 @@
                 type="button"
                 class="flex-1 rounded-full px-4 py-2 text-sm font-medium ${
                   enterBidderPoints
-                    ? 'bg-blue-600 text-white shadow hover:bg-blue-700'
+                    ? `bg-${biddingTeamColor}-600 text-white shadow hover:bg-${biddingTeamColor}-700`
                     : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'
-                } transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+                } transition focus:outline-none focus:ring-2 focus:ring-${biddingTeamColor}-500 focus:ring-opacity-50"
                 onclick="handleBiddingPointsToggle(true)"
                 aria-pressed="${enterBidderPoints}"
               >
@@ -699,9 +701,9 @@
                 type="button"
                 class="flex-1 rounded-full px-4 py-2 text-sm font-medium ${
                   !enterBidderPoints
-                    ? 'bg-red-600 text-white shadow hover:bg-red-700'
+                    ? `bg-${nonBiddingTeamColor}-600 text-white shadow hover:bg-${nonBiddingTeamColor}-700`
                     : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'
-                } transition focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+                } transition focus:outline-none focus:ring-2 focus:ring-${nonBiddingTeamColor}-500 focus:ring-opacity-50"
                 onclick="handleBiddingPointsToggle(false)"
                 aria-pressed="${!enterBidderPoints}"
               >
@@ -718,9 +720,6 @@
                 type="number"
                 min="0"
                 max="360"
-                value="${points}"
-                onchange="handlePointsChange(event)"
-                onblur="finalizePoints()"
                 placeholder="Enter points"
                 class="w-full sm:w-1/2 border border-gray-300 rounded-lg px-4 py-2
                        focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
@@ -795,7 +794,6 @@
                           step="5"
                           value="${customBidValue}"
                           onchange="handleCustomBidChange(event)"
-                          onblur="finalizeCustomBid()"
                           placeholder="Enter custom bid"
                           class="w-full sm:w-1/2 border border-gray-300 rounded-lg px-4 py-2
                                  focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
@@ -856,7 +854,6 @@
         <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" role="alertdialog" aria-labelledby="gameOverTitle" aria-modal="true">
           <div class="bg-white w-full max-w-md rounded-lg shadow-lg">
             <div class="p-6 text-center">
-              ${Icons.Trophy}
               <h2 id="gameOverTitle" class="text-3xl font-bold mb-4 animate-fade-in">Game Over!</h2>
               <p class="text-xl mb-6 animate-fade-in">${winner === 'us' ? 'Our Team' : 'Dem Team'} Wins!</p>
               <button
@@ -903,10 +900,9 @@
         <!-- Title and Buttons -->
         <div class="text-center space-y-2">
           <div class="flex flex-col items-center">
-            ${Icons.Trophy}
             <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-800">Rook!</h1>
           </div>
-          <p class="text-md sm:text-lg text-gray-600">Tap on a team to start a bid!</p>
+          <p class="text-md sm:text-lg text-gray-600">Tap a team to start a bid!</p>
           <div class="flex justify-center space-x-4 mt-4">
             <button
               onclick="openSavedGamesModal()"
