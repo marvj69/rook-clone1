@@ -78,12 +78,77 @@
     #saveIndicator.show {
       opacity: 1;
     }
+
+    /* Hamburger Menu Styles */
+    .hamburger-menu {
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+    }
+
+    .bar {
+      width: 25px;
+      height: 3px;
+      background-color: #333;
+      margin: 4px 0;
+    }
+
+    nav {
+      display: none;
+      position: fixed;
+      top: 50px;
+      left: 10px;
+      background-color: #333;
+      padding: 10px;
+      border-radius: 5px;
+      z-index: 1000;
+    }
+
+    nav ul {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    nav ul li {
+      margin: 10px 0;
+    }
+
+    nav ul li a {
+      color: white;
+      text-decoration: none;
+      font-size: 16px;
+    }
+
+    nav ul li a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body class="bg-white text-gray-800 min-h-screen">
-  <div class="absolute bottom-0 right-0 m-4 p-2 text-gray-800 font-medium text-xs bg-white bg-opacity-70 rounded-full shadow px-3 py-1">
-    <p>Version 1.02</p>
+  <!-- Hamburger Menu -->
+  <div class="hamburger-menu" onclick="toggleMenu()">
+    <div class="bar"></div>
+    <div class="bar"></div>
+    <div class="bar"></div>
   </div>
+  <nav id="menu">
+    <ul>
+      <li><a href="#" onclick="openSavedGamesModal()">Saved Games</a></li>
+      <li><a href="#" onclick="handleNewGame()">New Game</a></li>
+      <li><a href="#" onclick="handleFreezerGame()">Freeze Game</a></li>
+    </ul>
+  </nav>
+
+  <!-- Version Indicator Moved to Top Right and Updated to Version 1.04 -->
+  <div class="absolute top-0 right-0 m-4 p-2 text-gray-800 font-medium text-xs bg-white bg-opacity-70 rounded-full shadow px-3 py-1">
+    <p>Version 1.04</p>
+  </div>
+  
   <div id="app" class="max-w-4xl mx-auto p-4 sm:p-6 space-y-6"></div>
 
   <!-- Save Indicator -->
@@ -422,463 +487,462 @@
           ? 360
           : 180 - pointsValue;
 
-      const nonBidderPoints = pointsValue === 360 ? 0 : 180 - bidderPoints;
+          const nonBidderPoints = pointsValue === 360 ? 0 : 180 - bidderPoints;
 
-      const usPoints = biddingTeam === 'us'
-        ? (bidderPoints < bid ? -bid : bidderPoints)
-        : nonBidderPoints;
+const usPoints = biddingTeam === 'us'
+  ? (bidderPoints < bid ? -bid : bidderPoints)
+  : nonBidderPoints;
 
-      const DemPoints = biddingTeam === 'Dem'
-        ? (bidderPoints < bid ? -bid : bidderPoints)
-        : nonBidderPoints;
+const DemPoints = biddingTeam === 'Dem'
+  ? (bidderPoints < bid ? -bid : bidderPoints)
+  : nonBidderPoints;
 
-      const prevTotals = rounds.length ? rounds[rounds.length - 1].runningTotals : { us: 0, Dem: 0 };
-      const newRunningTotals = {
-        us: prevTotals.us + usPoints,
-        Dem: prevTotals.Dem + DemPoints
-      };
+const prevTotals = rounds.length ? rounds[rounds.length - 1].runningTotals : { us: 0, Dem: 0 };
+const newRunningTotals = {
+  us: prevTotals.us + usPoints,
+  Dem: prevTotals.Dem + DemPoints
+};
 
-      const newRounds = [
-        ...rounds,
-        {
-          biddingTeam,
-          bidAmount: bid,
-          usPoints,
-          DemPoints,
-          runningTotals: newRunningTotals,
-        }
-      ];
+const newRounds = [
+  ...rounds,
+  {
+    biddingTeam,
+    bidAmount: bid,
+    usPoints,
+    DemPoints,
+    runningTotals: newRunningTotals,
+  }
+];
 
-      const wonOnBid = biddingTeam === 'us'
-        ? usPoints >= bid && usPoints > 0
-        : DemPoints >= bid && DemPoints > 0;
+const wonOnBid = biddingTeam === 'us'
+  ? usPoints >= bid && usPoints > 0
+  : DemPoints >= bid && DemPoints > 0;
 
-      const setOtherTeam = biddingTeam === 'us' ? DemPoints < 0 : usPoints < 0;
+const setOtherTeam = biddingTeam === 'us' ? DemPoints < 0 : usPoints < 0;
 
-      const pointSpread = Math.abs(newRunningTotals.us - newRunningTotals.Dem);
-      const spreadWinner = newRunningTotals.us > newRunningTotals.Dem ? 'us' : 'Dem';
-      const spreadCondition = pointSpread >= 1000;
+const pointSpread = Math.abs(newRunningTotals.us - newRunningTotals.Dem);
+const spreadWinner = newRunningTotals.us > newRunningTotals.Dem ? 'us' : 'Dem';
+const spreadCondition = pointSpread >= 1000;
 
-      // **New Variables for Additional Win Condition**
-      const otherTeam = biddingTeam === 'us' ? 'Dem' : 'us';
-      const otherTeamTotal = newRunningTotals[otherTeam];
-      const biddingTeamFailedBid = biddingTeam === 'us' ? usPoints < 0 : DemPoints < 0;
+// **New Variables for Additional Win Condition**
+const otherTeam = biddingTeam === 'us' ? 'Dem' : 'us';
+const otherTeamTotal = newRunningTotals[otherTeam];
+const biddingTeamFailedBid = biddingTeam === 'us' ? usPoints < 0 : DemPoints < 0;
 
-      let gameEnded = false;
-      let finalWinner = null;
-      let endReason = '';
+let gameEnded = false;
+let finalWinner = null;
+let endReason = '';
 
-      // **Updated Win Conditions**
-      if (
-        ((biddingTeam === 'us' && newRunningTotals.us >= 500) ||
-         (biddingTeam === 'Dem' && newRunningTotals.Dem >= 500)) &&
-        (wonOnBid || setOtherTeam)
-      ) {
-        gameEnded = true;
-        finalWinner = biddingTeam;
-        endReason = 'reached 500 points';
-      } 
-      // **New Win Condition: Bidding Team Failed Bid and Other Team >= 500**
-      else if (biddingTeamFailedBid && otherTeamTotal >= 500) {
-        gameEnded = true;
-        finalWinner = otherTeam;
-        endReason = `${otherTeam} reached 500 points after ${biddingTeam === 'us' ? 'our team' : 'Dem team'} failed their bid`;
-      }
-      else if (spreadCondition) {
-        gameEnded = true;
-        finalWinner = spreadWinner;
-        endReason = 'a 1000-point spread';
-      }
+// **Updated Win Conditions**
+if (
+  ((biddingTeam === 'us' && newRunningTotals.us >= 500) ||
+   (biddingTeam === 'Dem' && newRunningTotals.Dem >= 500)) &&
+  (wonOnBid || setOtherTeam)
+) {
+  gameEnded = true;
+  finalWinner = biddingTeam;
+  endReason = 'reached 500 points';
+} 
+// **New Win Condition: Bidding Team Failed Bid and Other Team >= 500**
+else if (biddingTeamFailedBid && otherTeamTotal >= 500) {
+  gameEnded = true;
+  finalWinner = otherTeam;
+  endReason = `${otherTeam} reached 500 points after ${biddingTeam === 'us' ? 'our team' : 'Dem team'} failed their bid`;
+}
+else if (spreadCondition) {
+  gameEnded = true;
+  finalWinner = spreadWinner;
+  endReason = 'a 1000-point spread';
+}
 
-      ephemeralCustomBid = '';
-      ephemeralPoints = '';
+ephemeralCustomBid = '';
+ephemeralPoints = '';
 
-      if (gameEnded) {
-        alert(`Game Over! ${finalWinner === 'us' ? 'Our Team' : 'Dem Team'} wins by ${endReason}.`);
-      }
+if (gameEnded) {
+  alert(`Game Over! ${finalWinner === 'us' ? 'Our Team' : 'Dem Team'} wins by ${endReason}.`);
+}
 
-      updateState({
-        rounds: newRounds,
-        gameOver: gameEnded,
-        winner: finalWinner,
-        biddingTeam: '',
-        bidAmount: '',
-        showCustomBid: false,
-        customBidValue: '',
-        enterBidderPoints: false,
-        error: ''
-      });
+updateState({
+  rounds: newRounds,
+  gameOver: gameEnded,
+  winner: finalWinner,
+  biddingTeam: '',
+  bidAmount: '',
+  showCustomBid: false,
+  customBidValue: '',
+  enterBidderPoints: false,
+  error: ''
+});
 
-      // Save the state after adding a new round
-      saveCurrentGameState();
+// Save the state after adding a new round
+saveCurrentGameState();
+}
+
+function handleUndo() {
+if (!state.rounds.length) return;
+const newRounds = state.rounds.slice(0, -1);
+let newLastBidAmount = null;
+let newLastBidTeam = null;
+
+if (newRounds.length > 0) {
+  const lastRound = newRounds[newRounds.length - 1];
+  newLastBidAmount = lastRound.bidAmount.toString();
+  newLastBidTeam = lastRound.biddingTeam;
+}
+
+updateState({
+  rounds: newRounds,
+  gameOver: false,
+  winner: null,
+  lastBidAmount: newLastBidAmount,
+  lastBidTeam: newLastBidTeam
+});
+
+// Save the state after undoing a round
+saveCurrentGameState();
+}
+
+function handleNewGame() {
+if (state.rounds.length > 0) {
+  if (!confirm("Do you want to start a new game?")) return;
+
+  if (confirm("Do you want to save the previous game result before starting a new game?")) {
+    const player1 = prompt("Enter the names for Us:");
+    if (!player1) {
+      alert("Player 1 name is required to save the game.");
+      return;
     }
-
-
-    function handleUndo() {
-      if (!state.rounds.length) return;
-      const newRounds = state.rounds.slice(0, -1);
-      let newLastBidAmount = null;
-      let newLastBidTeam = null;
-
-      if (newRounds.length > 0) {
-        const lastRound = newRounds[newRounds.length - 1];
-        newLastBidAmount = lastRound.bidAmount.toString();
-        newLastBidTeam = lastRound.biddingTeam;
-      }
-
-      updateState({
-        rounds: newRounds,
-        gameOver: false,
-        winner: null,
-        lastBidAmount: newLastBidAmount,
-        lastBidTeam: newLastBidTeam
-      });
-
-      // Save the state after undoing a round
-      saveCurrentGameState();
+    const player2 = prompt("Enter the names for Dem:");
+    if (!player2) {
+      alert("Player 2 name is required to save the game.");
+      return;
     }
+    const finalScore = state.rounds.length
+      ? state.rounds[state.rounds.length - 1].runningTotals
+      : { us: 0, Dem: 0 };
+    const savedGames = getLocalStorage('savedGames');
+    savedGames.push({
+      player1: player1.trim(),
+      player2: player2.trim(),
+      rounds: state.rounds,
+      finalScore,
+      timestamp: new Date().toISOString()
+    });
+    setLocalStorage('savedGames', savedGames);
+    alert("Game saved successfully.");
+  }
+}
 
-    function handleNewGame() {
-      if (state.rounds.length > 0) {
-        if (!confirm("Do you want to start a new game?")) return;
+// Clear the active game state
+localStorage.removeItem(ACTIVE_GAME_KEY);
 
-        if (confirm("Do you want to save the previous game result before starting a new game?")) {
-          const player1 = prompt("Enter the names for Us:");
-          if (!player1) {
-            alert("Player 1 name is required to save the game.");
-            return;
-          }
-          const player2 = prompt("Enter the names for Dem:");
-          if (!player2) {
-            alert("Player 2 name is required to save the game.");
-            return;
-          }
-          const finalScore = state.rounds.length
-            ? state.rounds[state.rounds.length - 1].runningTotals
-            : { us: 0, Dem: 0 };
-          const savedGames = getLocalStorage('savedGames');
-          savedGames.push({
-            player1: player1.trim(),
-            player2: player2.trim(),
-            rounds: state.rounds,
-            finalScore,
-            timestamp: new Date().toISOString()
-          });
-          setLocalStorage('savedGames', savedGames);
-          alert("Game saved successfully.");
-        }
-      }
-      
-      // Clear the active game state
-      localStorage.removeItem(ACTIVE_GAME_KEY);
-      
-      ephemeralCustomBid = '';
-      ephemeralPoints = '';
-      updateState({ ...DEFAULT_STATE });
-    }
+ephemeralCustomBid = '';
+ephemeralPoints = '';
+updateState({ ...DEFAULT_STATE });
+}
 
-    function handleManualSaveGame() {
-      if (!state.rounds.length) {
-        alert("No game in progress to save.");
-        return;
-      }
-      const player1 = prompt("Enter the name for Us:");
-      if (!player1) {
-        alert("Player 1 name is required to save the game.");
-        return;
-      }
-      const player2 = prompt("Enter the name for Dem:");
-      if (!player2) {
-        alert("Player 2 name is required to save the game.");
-        return;
-      }
-      const finalScore = state.rounds.length
-        ? state.rounds[state.rounds.length - 1].runningTotals
-        : { us: 0, Dem: 0 };
-      const savedGames = getLocalStorage('savedGames');
-      savedGames.push({
-        player1: player1.trim(),
-        player2: player2.trim(),
-        rounds: state.rounds,
-        finalScore,
-        timestamp: new Date().toISOString()
-      });
-      setLocalStorage('savedGames', savedGames);
-      alert("Game saved successfully.");
-      
-      // Clear the active game state
-      localStorage.removeItem(ACTIVE_GAME_KEY);
-      
-      // Reset the game
-      ephemeralCustomBid = '';
-      ephemeralPoints = '';
-      updateState({ ...DEFAULT_STATE });
-    }
+function handleManualSaveGame() {
+if (!state.rounds.length) {
+  alert("No game in progress to save.");
+  return;
+}
+const player1 = prompt("Enter the name for Us:");
+if (!player1) {
+  alert("Player 1 name is required to save the game.");
+  return;
+}
+const player2 = prompt("Enter the name for Dem:");
+if (!player2) {
+  alert("Player 2 name is required to save the game.");
+  return;
+}
+const finalScore = state.rounds.length
+  ? state.rounds[state.rounds.length - 1].runningTotals
+  : { us: 0, Dem: 0 };
+const savedGames = getLocalStorage('savedGames');
+savedGames.push({
+  player1: player1.trim(),
+  player2: player2.trim(),
+  rounds: state.rounds,
+  finalScore,
+  timestamp: new Date().toISOString()
+});
+setLocalStorage('savedGames', savedGames);
+alert("Game saved successfully.");
 
-    /********************************************************
-     * Freezer and Saved Games
-     ********************************************************/
-    function openSavedGamesModal() {
-      renderSavedGames();
-      renderFreezerGames();
-      document.getElementById('savedGamesModal').classList.remove('hidden');
-      // Set focus to modal for accessibility
-      document.getElementById('savedGamesModal').focus();
-    }
+// Clear the active game state
+localStorage.removeItem(ACTIVE_GAME_KEY);
 
-    function closeSavedGamesModal() {
-      document.getElementById('savedGamesModal').classList.add('hidden');
-    }
+// Reset the game
+ephemeralCustomBid = '';
+ephemeralPoints = '';
+updateState({ ...DEFAULT_STATE });
+}
 
-    function renderSavedGames() {
-      const savedGames = getLocalStorage('savedGames');
-      const savedGamesListEl = document.getElementById('savedGamesList');
-      if (!savedGames.length) {
-        savedGamesListEl.innerHTML = `<p class="text-gray-600">No completed games available.</p>`;
-        return;
-      }
-      savedGamesListEl.innerHTML = savedGames
-        .map((game, index) => `
-          <div class="border p-4 rounded-lg shadow-sm bg-gray-50">
-            <div class="flex justify-between items-center">
-              <div>
-                <p class="font-semibold">Players:</p>
-                <p>${sanitizeHTML(game.player1)} vs ${sanitizeHTML(game.player2)}</p>
-              </div>
-              <button onclick="deleteSavedGame(${index})" class="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500" aria-label="Delete Saved Game">
-                ${Icons.Trash}
-              </button>
-            </div>
-            <div class="mt-2">
-              <p class="font-semibold">Final Score:</p>
-              <p>Us: ${game.finalScore.us} | Dem: ${game.finalScore.Dem}</p>
-            </div>
-            <div class="mt-2">
-              <p class="font-semibold">Date:</p>
-              <p>${new Date(game.timestamp).toLocaleString()}</p>
-            </div>
-          </div>
-        `)
-        .join('');
-    }
+/********************************************************
+* Freezer and Saved Games
+********************************************************/
+function openSavedGamesModal() {
+renderSavedGames();
+renderFreezerGames();
+document.getElementById('savedGamesModal').classList.remove('hidden');
+// Set focus to modal for accessibility
+document.getElementById('savedGamesModal').focus();
+}
 
-    function renderFreezerGames() {
-      const freezerGames = getLocalStorage('freezerGames');
-      const freezerGamesListEl = document.getElementById('freezerGamesList');
-      if (!freezerGames.length) {
-        freezerGamesListEl.innerHTML = `<p class="text-gray-600">No freezer games available.</p>`;
-        return;
-      }
-      freezerGamesListEl.innerHTML = freezerGames
-        .map((game, index) => `
-          <div class="border p-4 rounded-lg shadow-sm bg-gray-50">
-            <div class="flex justify-between items-center">
-              <div>
-                <p class="font-semibold">Name:</p>
-                <p>${sanitizeHTML(game.name)}</p>
-              </div>
-              <div class="flex space-x-2">
-                <button onclick="loadFreezerGame(${index})" class="text-blue-600 hover:text-blue-800 flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Load Freezer Game">
-                  ${Icons.Load}Load
-                </button>
-                <button onclick="deleteFreezerGame(${index})" class="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500" aria-label="Delete Freezer Game">
-                  ${Icons.Trash}
-                </button>
-              </div>
-            </div>
-            <div class="mt-2">
-              <p class="font-semibold">Final Score:</p>
-              <p>Us: ${game.finalScore.us} | Dem: ${game.finalScore.Dem}</p>
-            </div>
-            <div class="mt-2">
-              <p class="font-semibold">Last Bid:</p>
-              <p>${game.lastBid}</p>
-            </div>
-            <div class="mt-2">
-              <p class="font-semibold">Date Frozen:</p>
-              <p>${new Date(game.timestamp).toLocaleString()}</p>
-            </div>
-          </div>
-        `)
-        .join('');
-    }
+function closeSavedGamesModal() {
+document.getElementById('savedGamesModal').classList.add('hidden');
+}
 
-    function deleteSavedGame(index) {
-      deleteGame('savedGames', index, 'saved game');
-    }
+function renderSavedGames() {
+const savedGames = getLocalStorage('savedGames');
+const savedGamesListEl = document.getElementById('savedGamesList');
+if (!savedGames.length) {
+  savedGamesListEl.innerHTML = `<p class="text-gray-600">No completed games available.</p>`;
+  return;
+}
+savedGamesListEl.innerHTML = savedGames
+  .map((game, index) => `
+    <div class="border p-4 rounded-lg shadow-sm bg-gray-50">
+      <div class="flex justify-between items-center">
+        <div>
+          <p class="font-semibold">Players:</p>
+          <p>${sanitizeHTML(game.player1)} vs ${sanitizeHTML(game.player2)}</p>
+        </div>
+        <button onclick="deleteSavedGame(${index})" class="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500" aria-label="Delete Saved Game">
+          ${Icons.Trash}
+        </button>
+      </div>
+      <div class="mt-2">
+        <p class="font-semibold">Final Score:</p>
+        <p>Us: ${game.finalScore.us} | Dem: ${game.finalScore.Dem}</p>
+      </div>
+      <div class="mt-2">
+        <p class="font-semibold">Date:</p>
+        <p>${new Date(game.timestamp).toLocaleString()}</p>
+      </div>
+    </div>
+  `)
+  .join('');
+}
 
-    function deleteFreezerGame(index) {
-      deleteGame('freezerGames', index, 'freezer game');
-    }
+function renderFreezerGames() {
+const freezerGames = getLocalStorage('freezerGames');
+const freezerGamesListEl = document.getElementById('freezerGamesList');
+if (!freezerGames.length) {
+  freezerGamesListEl.innerHTML = `<p class="text-gray-600">No freezer games available.</p>`;
+  return;
+}
+freezerGamesListEl.innerHTML = freezerGames
+  .map((game, index) => `
+    <div class="border p-4 rounded-lg shadow-sm bg-gray-50">
+      <div class="flex justify-between items-center">
+        <div>
+          <p class="font-semibold">Name:</p>
+          <p>${sanitizeHTML(game.name)}</p>
+        </div>
+        <div class="flex space-x-2">
+          <button onclick="loadFreezerGame(${index})" class="text-blue-600 hover:text-blue-800 flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Load Freezer Game">
+            ${Icons.Load}Load
+          </button>
+          <button onclick="deleteFreezerGame(${index})" class="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500" aria-label="Delete Freezer Game">
+            ${Icons.Trash}
+          </button>
+        </div>
+      </div>
+      <div class="mt-2">
+        <p class="font-semibold">Final Score:</p>
+        <p>Us: ${game.finalScore.us} | Dem: ${game.finalScore.Dem}</p>
+      </div>
+      <div class="mt-2">
+        <p class="font-semibold">Last Bid:</p>
+        <p>${game.lastBid}</p>
+      </div>
+      <div class="mt-2">
+        <p class="font-semibold">Date Frozen:</p>
+        <p>${new Date(game.timestamp).toLocaleString()}</p>
+      </div>
+    </div>
+  `)
+  .join('');
+}
 
-    function handleFreezerGame() {
-      if (!state.rounds.length) {
-        alert("No game in progress to freeze.");
-        return;
-      }
-      let gameName = prompt("Enter a name for this freezer game:");
-      if (gameName === null) return;
-      gameName = gameName.trim();
-      if (!gameName) {
-        alert("Game name cannot be empty.");
-        return;
-      }
-      const freezerGames = getLocalStorage('freezerGames');
-      if (freezerGames.some(g => g.name.toLowerCase() === gameName.toLowerCase())) {
-        alert("A freezer game with this name already exists. Please choose a different name.");
-        return;
-      }
-      const lastRound = state.rounds[state.rounds.length - 1];
-      const totals = state.rounds.reduce((acc, round) => ({
-        us: acc.us + round.usPoints,
-        Dem: acc.Dem + round.DemPoints
-      }), { us: 0, Dem: 0 });
+function deleteSavedGame(index) {
+deleteGame('savedGames', index, 'saved game');
+}
 
-      freezerGames.push({
-        name: gameName,
-        finalScore: { us: totals.us, Dem: totals.Dem },
-        lastBid: lastRound.bidAmount,
-        rounds: state.rounds,
-        timestamp: new Date().toISOString()
-      });
-      setLocalStorage('freezerGames', freezerGames);
-      alert("Current game with complete history has been frozen successfully.");
-      
-      // Clear the active game state
-      localStorage.removeItem(ACTIVE_GAME_KEY);
-      
-      ephemeralCustomBid = '';
-      ephemeralPoints = '';
-      updateState({ ...DEFAULT_STATE });
-    }
+function deleteFreezerGame(index) {
+deleteGame('freezerGames', index, 'freezer game');
+}
 
-    function loadFreezerGame(index) {
-      const freezerGames = getLocalStorage('freezerGames');
-      const freezerGame = freezerGames[index];
-      if (!freezerGame) {
-        alert("Selected freezer game does not exist.");
-        return;
-      }
-      if (!confirm(`Load the freezer game "${freezerGame.name}"? This will overwrite the current game.`)) return;
-      updateState({
-        rounds: freezerGame.rounds,
-        gameOver: false,
-        winner: null,
-        biddingTeam: '',
-        bidAmount: '',
-        showCustomBid: false,
-        customBidValue: '',
-        enterBidderPoints: false,
-        error: '',
-        lastBidAmount: null,
-        lastBidTeam: null
-      });
-      freezerGames.splice(index, 1);
-      setLocalStorage('freezerGames', freezerGames);
-      alert(`Freezer game "${freezerGame.name}" loaded successfully.`);
-      closeSavedGamesModal();
-      
-      // Save the state after loading a freezer game
-      saveCurrentGameState();
-    }
+function handleFreezerGame() {
+if (!state.rounds.length) {
+  alert("No game in progress to freeze.");
+  return;
+}
+let gameName = prompt("Enter a name for this freezer game:");
+if (gameName === null) return;
+gameName = gameName.trim();
+if (!gameName) {
+  alert("Game name cannot be empty.");
+  return;
+}
+const freezerGames = getLocalStorage('freezerGames');
+if (freezerGames.some(g => g.name.toLowerCase() === gameName.toLowerCase())) {
+  alert("A freezer game with this name already exists. Please choose a different name.");
+  return;
+}
+const lastRound = state.rounds[state.rounds.length - 1];
+const totals = state.rounds.reduce((acc, round) => ({
+  us: acc.us + round.usPoints,
+  Dem: acc.Dem + round.DemPoints
+}), { us: 0, Dem: 0 });
 
-    /********************************************************
-     * Render Functions
-     ********************************************************/
-    function renderTeamCard(team, total, colorClass) {
-      const isSelected = state.biddingTeam === team;
-      const bgColor = isSelected ? `${colorClass}-200` : `${colorClass}-100`;
-      const hoverBgColor = isSelected ? `${colorClass}-300` : `${colorClass}-200`;
-      const predefinedTextColor = isSelected ? `${colorClass}-900` : `${colorClass}-700`;
+freezerGames.push({
+  name: gameName,
+  finalScore: { us: totals.us, Dem: totals.Dem },
+  lastBid: lastRound.bidAmount,
+  rounds: state.rounds,
+  timestamp: new Date().toISOString()
+});
+setLocalStorage('freezerGames', freezerGames);
+alert("Current game with complete history has been frozen successfully.");
 
-      return `
-        <div
-          class="bg-${bgColor} cursor-pointer hover:bg-${hoverBgColor} transition-colors
-                 rounded-lg shadow-md p-4 flex flex-col items-center space-y-2 border ${isSelected ? `border-${colorClass}-600` : 'border-gray-300'} flex-1 min-w-0"
-          onclick="handleTeamClick('${team}')"
-          tabindex="0"
-          role="button"
-          aria-pressed="${isSelected}"
-          aria-label="Select ${team === 'us' ? 'Our Team' : 'Dem Team'}"
+// Clear the active game state
+localStorage.removeItem(ACTIVE_GAME_KEY);
+
+ephemeralCustomBid = '';
+ephemeralPoints = '';
+updateState({ ...DEFAULT_STATE });
+}
+
+function loadFreezerGame(index) {
+const freezerGames = getLocalStorage('freezerGames');
+const freezerGame = freezerGames[index];
+if (!freezerGame) {
+  alert("Selected freezer game does not exist.");
+  return;
+}
+if (!confirm(`Load the freezer game "${freezerGame.name}"? This will overwrite the current game.`)) return;
+updateState({
+  rounds: freezerGame.rounds,
+  gameOver: false,
+  winner: null,
+  biddingTeam: '',
+  bidAmount: '',
+  showCustomBid: false,
+  customBidValue: '',
+  enterBidderPoints: false,
+  error: '',
+  lastBidAmount: null,
+  lastBidTeam: null
+});
+freezerGames.splice(index, 1);
+setLocalStorage('freezerGames', freezerGames);
+alert(`Freezer game "${freezerGame.name}" loaded successfully.`);
+closeSavedGamesModal();
+
+// Save the state after loading a freezer game
+saveCurrentGameState();
+}
+
+/********************************************************
+* Render Functions
+********************************************************/
+function renderTeamCard(team, total, colorClass) {
+const isSelected = state.biddingTeam === team;
+const bgColor = isSelected ? `${colorClass}-900` : `${colorClass}-500`;
+const hoverBgColor = isSelected ? `${colorClass}-900` : `${colorClass}-500`;
+const predefinedTextColor = isSelected ? `${colorClass}-900` : `${colorClass}-700`;
+
+return `
+  <div
+    class="bg-${bgColor} cursor-pointer hover:bg-${hoverBgColor} transition-colors
+           rounded-lg shadow-md p-4 flex flex-col items-center space-y-2 flex-1 min-w-0"
+    onclick="handleTeamClick('${team}')"
+    tabindex="0"
+    role="button"
+    aria-pressed="${isSelected}"
+    aria-label="Select ${team === 'us' ? 'Our Team' : 'Dem Team'}"
+  >
+    <h2 class="text-xl font-semibold text-white capitalize">
+      ${team === 'us' ? 'Us' : 'Dem'}
+    </h2>
+    <p class="text-3xl font-bold text-white text-outline">${total}</p>
+  </div>
+`;
+}
+
+function renderRoundCard(currentRound, bidDisplay) {
+return `
+  <div class="bg-white border border-gray-200 rounded-lg shadow flex flex-col items-center justify-center p-4 flex-1 min-w-0">
+    <div class="text-center space-y-1">
+      <h2 class="text-2xl font-bold text-gray-700">Round</h2>
+      <p class="text-4xl font-extrabold text-gray-900">${currentRound}</p>
+      ${bidDisplay}
+    </div>
+  </div>
+`;
+}
+
+function renderErrorAlert(errorMsg) {
+return `
+  <div role="alert" class="flex items-center border border-red-400 rounded-md p-4 bg-red-50 text-red-700 space-x-3">
+    <div class="flex-shrink-0">${Icons.AlertCircle}</div>
+    <div class="flex-1">${errorMsg}</div>
+  </div>
+`;
+}
+
+function renderPointsInput() {
+const { biddingTeam, enterBidderPoints } = state;
+const labelText =
+  biddingTeam === 'us'
+    ? enterBidderPoints
+      ? 'Our Points (Bidding Team)'
+      : 'Dem Points (Non-Bidding Team)'
+    : enterBidderPoints
+      ? 'Dem Points (Bidding Team)'
+      : 'Our Points (Non-Bidding Team)';
+
+// Determine button colors based on bidding team
+let biddingTeamColor = 'blue'; // default
+let nonBiddingTeamColor = 'red'; // default
+
+if (biddingTeam === 'Dem') {
+  biddingTeamColor = 'red';
+  nonBiddingTeamColor = 'blue';
+} else if (biddingTeam === 'us') {
+  biddingTeamColor = 'blue';
+  nonBiddingTeamColor = 'red';
+}
+
+return `
+  <div class="space-y-6">
+    <div>
+      <label for="pointsToggle" class="block text-sm font-medium mb-2">Enter Points For</label>
+      <div class="flex gap-4">
+        <button
+          type="button"
+          class="flex-1 rounded-full px-4 py-2 text-sm font-medium ${
+            enterBidderPoints
+              ? `bg-${biddingTeamColor}-600 text-white shadow hover:bg-${biddingTeamColor}-700`
+              : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'
+          } transition focus:outline-none focus:ring-2 focus:ring-${biddingTeamColor}-500 focus:ring-opacity-50"
+          onclick="handleBiddingPointsToggle(true)"
+          aria-pressed="${enterBidderPoints}"
         >
-          <h2 class="text-xl font-semibold text-${predefinedTextColor} capitalize">
-            ${team === 'us' ? 'Us' : 'Dem'}
-          </h2>
-          <p class="text-3xl font-bold text-${predefinedTextColor}">${total}</p>
-        </div>
-      `;
-    }
-
-    function renderRoundCard(currentRound, bidDisplay) {
-      return `
-        <div class="bg-white border border-gray-200 rounded-lg shadow flex flex-col items-center justify-center p-4 flex-1 min-w-0">
-          <div class="text-center space-y-1">
-            <h2 class="text-2xl font-bold text-gray-700">Round</h2>
-            <p class="text-4xl font-extrabold text-gray-900">${currentRound}</p>
-            ${bidDisplay}
-          </div>
-        </div>
-      `;
-    }
-
-    function renderErrorAlert(errorMsg) {
-      return `
-        <div role="alert" class="flex items-center border border-red-400 rounded-md p-4 bg-red-50 text-red-700 space-x-3">
-          <div class="flex-shrink-0">${Icons.AlertCircle}</div>
-          <div class="flex-1">${errorMsg}</div>
-        </div>
-      `;
-    }
-
-    function renderPointsInput() {
-      const { biddingTeam, enterBidderPoints } = state;
-      const labelText =
-        biddingTeam === 'us'
-          ? enterBidderPoints
-            ? 'Our Points (Bidding Team)'
-            : 'Dem Points (Non-Bidding Team)'
-          : enterBidderPoints
-            ? 'Dem Points (Bidding Team)'
-            : 'Our Points (Non-Bidding Team)';
-
-      // Determine button colors based on bidding team
-      let biddingTeamColor = 'blue'; // default
-      let nonBiddingTeamColor = 'red'; // default
-
-      if (biddingTeam === 'Dem') {
-        biddingTeamColor = 'red';
-        nonBiddingTeamColor = 'blue';
-      } else if (biddingTeam === 'us') {
-        biddingTeamColor = 'blue';
-        nonBiddingTeamColor = 'red';
-      }
-
-      return `
-        <div class="space-y-6">
-          <div>
-            <label for="pointsToggle" class="block text-sm font-medium mb-2">Enter Points For</label>
-            <div class="flex gap-4">
-              <button
-                type="button"
-                class="flex-1 rounded-full px-4 py-2 text-sm font-medium ${
-                  enterBidderPoints
-                    ? `bg-${biddingTeamColor}-600 text-white shadow hover:bg-${biddingTeamColor}-700`
-                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'
-                } transition focus:outline-none focus:ring-2 focus:ring-${biddingTeamColor}-500 focus:ring-opacity-50"
-                onclick="handleBiddingPointsToggle(true)"
-                aria-pressed="${enterBidderPoints}"
-              >
-                Bidding Team
-              </button>
-              <button
-                type="button"
-                class="flex-1 rounded-full px-4 py-2 text-sm font-medium ${
-                  !enterBidderPoints
-                    ? `bg-${nonBiddingTeamColor}-600 text-white shadow hover:bg-${nonBiddingTeamColor}-700`
-                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'
-                } transition focus:outline-none focus:ring-2 focus:ring-${nonBiddingTeamColor}-500 focus:ring-opacity-50"
-                onclick="handleBiddingPointsToggle(false)"
-                aria-pressed="${!enterBidderPoints}"
+          Bidding Team
+        </button>
+        <button
+          type="button"
+          class="flex-1 rounded-full px-4 py-2 text-sm font-medium ${
+            !enterBidderPoints
+              ? `bg-${nonBiddingTeamColor}-600 text-white shadow hover:bg-${nonBiddingTeamColor}-700`
+              : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'
+          } transition focus:outline-none focus:ring-2 focus:ring-${nonBiddingTeamColor}-500 focus:ring-opacity-50"
+          onclick="handleBiddingPointsToggle(false)"
+          aria                aria-pressed="${!enterBidderPoints}"
               >
                 Non-Bidding Team
               </button>
@@ -1098,6 +1162,8 @@
             >
               Freeze Game
             </button>
+            <!-- Removed the Save Game button -->
+            <!--
             <button
               onclick="handleManualSaveGame()"
               class="bg-purple-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg shadow
@@ -1106,6 +1172,7 @@
             >
               Save Game
             </button>
+            -->
           </div>
         </div>
 
