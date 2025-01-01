@@ -5,22 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Rook - Game Scoring Screen</title>
   
-  <!-- Set the theme color to white -->
+  <!-- Set the theme color to white (will be updated dynamically based on theme) -->
   <meta name="theme-color" content="#ffffff">
   
   <!-- iOS specific status bar style -->
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
-  <!-- Link to Web App Manifest -->
-  <link rel="manifest" href="manifest.json">
+  <!-- If you open via file://, manifest.json may cause CORS errors. -->
+  <!-- <link rel="manifest" href="manifest.json"> -->
   
   <!-- Fallback icon -->
   <link rel="icon" href="icons/icon-192x192.png">
-  
-  <!-- Tailwind CSS via CDN -->
+
+  <!-- 1) Load Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- 2) Configure Tailwind for class-based dark mode -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class', 
+      // optionally: theme: { extend: { ... } }
+    }
+  </script>
   
-  <!-- Your existing styles -->
+  <!-- Custom Styles -->
   <style>
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(-10px); }
@@ -37,7 +45,6 @@
       opacity: 0;
       transition: max-height 0.5s ease, opacity 0.5s ease;
     }
-
     .score-input-container.show {
       max-height: 1000px; /* Sufficiently large to accommodate content */
       opacity: 1;
@@ -54,134 +61,167 @@
       display: none;
     }
     .no-scrollbar {
-      -ms-overflow-style: none;  /* IE and Edge */
-      scrollbar-width: none;  /* Firefox */
+      -ms-overflow-style: none;  
+      scrollbar-width: none;  
     }
     
     /* Save Indicator Styling */
     #saveIndicator {
       position: fixed;
-      bottom: 1rem; /* Adjusted for smaller size */
+      bottom: 1rem; 
       right: 1rem;
-      background-color: rgba(16, 185, 129, 0.7); /* Tailwind's green-500 with increased transparency */
+      background-color: rgba(16, 185, 129, 0.7); 
       color: white;
-      padding: 0.5rem 1rem; /* Reduced padding for smaller size */
-      border-radius: 0.375rem; /* Smaller border radius */
+      padding: 0.5rem 1rem; 
+      border-radius: 0.375rem; 
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       opacity: 0;
-      transition: opacity 0.3s ease-in-out; /* Faster transition */
+      transition: opacity 0.3s ease-in-out; 
       pointer-events: none;
       z-index: 1000;
-      font-size: 0.875rem; /* Smaller font size */
+      font-size: 0.875rem; 
     }
-
     #saveIndicator.show {
       opacity: 1;
     }
 
-    /* Hamburger Menu Styles */
-    /* Hamburger Menu Styles */
-/* Hamburger Menu Styles */
-.hamburger-menu {
-  display: flex;
-  flex-direction: column;
-  cursor: pointer;
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  z-index: 1000;
-  transition: opacity 0.3s ease; /* Smooth fade-out effect */
-}
+    /* Hamburger Menu */
+    .hamburger-menu {
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 1000;
+      transition: opacity 0.3s ease; 
+    }
+    /* Hide the hamburger menu when nav is open */
+    nav.show ~ .hamburger-menu {
+      opacity: 0;
+      pointer-events: none; 
+    }
+    .bar {
+      width: 30px;
+      height: 4px;
+      background-color: #333;
+      margin: 5px 0;
+      transition: background-color 0.3s;
+    }
+    /* Make bars white in dark mode */
+    html.dark .bar {
+      background-color: #fff;
+    }
 
-/* Hide the hamburger menu when the nav is open */
-nav.show ~ .hamburger-menu {
-  opacity: 0;
-  pointer-events: none; /* Disable clicks on the hidden hamburger menu */
-}
+    /* Slide-out nav */
+    nav {
+      position: fixed;
+      top: 0;
+      left: -300px; /* Start off-screen */
+      width: 250px; 
+      height: 100%;
+      background-color: white; /* Light mode nav color */
+      z-index: 999;
+      transition: left 0.3s ease;
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); 
+    }
+    nav.show {
+      left: 0; 
+    }
+    /* Dark mode for nav */
+    html.dark nav {
+      background-color: #2d3748; /* Dark mode nav color */
+    }
 
-.bar {
-  width: 30px;
-  height: 4px;
-  background-color: #333;
-  margin: 5px 0;
-}
-
-nav {
-  position: fixed;
-  top: 0;
-  left: -300px; /* Start off-screen */
-  width: 250px; /* Width of the slide-out menu */
-  height: 100%;
-  background-color: white; /* White background */
-  z-index: 999;
-  transition: left 0.3s ease;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Add shadow for depth */
-}
-
-nav.show {
-  left: 0; /* Slide in */
-}
-
-nav ul {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-  margin-top: 60px; /* Space for the close button */
-}
-
-nav ul li {
-  margin: 0; /* Remove default margin */
-  border-bottom: 1px solid #e0e0e0; /* Horizontal line between options */
-}
-
-nav ul li:last-child {
-  border-bottom: none; /* Remove border for the last item */
-}
-
-nav ul li a {
-  color: #333; /* Dark text for better contrast */
-  text-decoration: none;
-  font-size: 20px;
-  padding: 15px 20px; /* Increase padding for better touch targets */
-  display: block;
-  transition: background-color 0.3s ease; /* Smooth hover effect */
-}
-
-nav ul li a:hover {
-  background-color: #f5f5f5; /* Light gray background on hover */
-}
-
-.close-menu {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  color: #333; /* Dark color for the close button */
-  font-size: 30px;
-  cursor: pointer;
-}
+    nav ul {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+      margin-top: 60px; /* Space for the close button */
+    }
+    nav ul li {
+      margin: 0; 
+      border-bottom: 1px solid #e0e0e0; 
+    }
+    nav ul li:last-child {
+      border-bottom: none; 
+    }
+    nav ul li a, nav ul li button {
+      color: #333; 
+      text-decoration: none;
+      font-size: 20px;
+      padding: 15px 20px; 
+      display: block;
+      transition: background-color 0.3s ease; 
+      width: 100%;
+      text-align: left;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    nav ul li a:hover, nav ul li button:hover {
+      background-color: #f5f5f5; 
+    }
+    /* Dark mode styling for nav links */
+    html.dark nav ul li a, html.dark nav ul li button {
+      color: #fff;
+    }
+    html.dark nav ul li a:hover, html.dark nav ul li button:hover {
+      background-color: #4a5568;
+    }
+    
+    /* Nav close button */
+    .close-menu {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      color: #333; 
+      font-size: 30px;
+      cursor: pointer;
+    }
+    html.dark .close-menu {
+      color: #fff; 
+    }
   </style>
 </head>
-<body class="bg-white text-gray-800 min-h-screen">
+
+<!-- We'll rely on the .dark class on <html> rather than <body> 
+     because Tailwind's "darkMode: 'class'" toggles <html>. 
+     The body also uses dark: classes below. -->
+<body class="bg-white text-gray-800 min-h-screen transition-colors duration-300 dark:bg-gray-900 dark:text-gray-100">
   <!-- Hamburger Menu -->
-  <div class="hamburger-menu" onclick="toggleMenu()">
+  <div class="hamburger-menu" onclick="toggleMenu(event)" aria-label="Open Menu" role="button" tabindex="0">
     <div class="bar"></div>
     <div class="bar"></div>
     <div class="bar"></div>
   </div>
+
+  <!-- Slide-Out Nav -->
   <nav id="menu">
-    <div class="close-menu" onclick="toggleMenu()">×</div>
+    <div class="close-menu" onclick="toggleMenu(event)" aria-label="Close Menu" role="button" tabindex="0">×</div>
     <ul>
-      <li><a href="#" onclick="openSavedGamesModal(); toggleMenu()">View Saved Games</a></li>
-      <li><a href="#" onclick="handleNewGame(); toggleMenu()">New Game</a></li>
-      <li><a href="#" onclick="handleFreezerGame(); toggleMenu()">Freeze Game</a></li>
+      <li><a href="#" onclick="openSavedGamesModal(); toggleMenu(event)">View Saved Games</a></li>
+      <li><a href="#" onclick="handleNewGame(); toggleMenu(event)">New Game</a></li>
+      <li><a href="#" onclick="handleFreezerGame(); toggleMenu(event)">Freeze Game</a></li>
+      <li>
+        <!-- The Dark Mode Toggle -->
+        <button id="darkModeToggle" onclick="toggleDarkMode(event)" class="flex items-center focus:outline-none">
+          <!-- Icon & Label updated in JS -->
+          <span id="darkModeIcon"></span>
+          <span id="darkModeLabel" class="ml-2">Dark Mode</span>
+        </button>
+      </li>
     </ul>
   </nav>
 
-  <!-- Version Indicator Moved to Top Right and Updated to Version 1.1 -->
-  <div class="absolute top-0 right-0 m-4 p-2 text-gray-800 font-medium text-xs bg-white bg-opacity-70 rounded-full shadow px-3 py-1">
+  <!-- Version Indicator (top right) -->
+  <div class="absolute top-0 right-0 m-4 p-2 text-gray-800 font-medium text-xs bg-white bg-opacity-70 rounded-full shadow px-3 py-1 
+              dark:bg-gray-800 dark:text-gray-100">
     <p>Version 1.1</p>
   </div>
   
+  <!-- Main App Container -->
   <div id="app" class="max-w-4xl mx-auto p-4 sm:p-6 space-y-6"></div>
 
   <!-- Save Indicator -->
@@ -197,10 +237,14 @@ nav ul li a:hover {
     aria-modal="true"
     aria-labelledby="savedGamesTitle"
   >
-    <div class="bg-white w-full max-w-4xl rounded-lg shadow-lg overflow-y-auto max-h-full">
-      <div class="flex justify-between items-center p-5 border-b border-gray-200">
-        <h3 id="savedGamesTitle" class="text-2xl font-semibold">Saved Games</h3>
-        <button id="closeSavedGamesModalBtn" class="text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Close Saved Games Modal">
+    <div class="bg-white w-full max-w-4xl rounded-lg shadow-lg overflow-y-auto max-h-full dark:bg-gray-800">
+      <div class="flex justify-between items-center p-5 border-b border-gray-200 dark:border-gray-700">
+        <h3 id="savedGamesTitle" class="text-2xl font-semibold text-gray-800 dark:text-gray-100">Saved Games</h3>
+        <button 
+          id="closeSavedGamesModalBtn" 
+          class="text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 
+                 dark:text-gray-300 dark:hover:text-gray-100" 
+          aria-label="Close Saved Games Modal">
           <!-- Close Icon -->
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -211,13 +255,13 @@ nav ul li a:hover {
       </div>
       <div class="p-5 space-y-6">
         <!-- Completed Games -->
-        <div class="rounded-lg shadow-sm p-4 bg-white">
-          <h4 class="text-xl font-bold mb-4">Completed Games</h4>
+        <div class="rounded-lg shadow-sm p-4 bg-gray-50 dark:bg-gray-700">
+          <h4 class="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100">Completed Games</h4>
           <div id="savedGamesList" class="space-y-4"></div>
         </div>
         <!-- Freezer Games -->
-        <div class="rounded-lg shadow-sm p-4 bg-white">
-          <h4 class="text-xl font-bold mb-4">Freezer Games</h4>
+        <div class="rounded-lg shadow-sm p-4 bg-gray-50 dark:bg-gray-700">
+          <h4 class="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100">Freezer Games</h4>
           <div id="freezerGamesList" class="space-y-4"></div>
         </div>
       </div>
@@ -257,11 +301,25 @@ nav ul li a:hover {
           <path stroke-linecap="round" stroke-linejoin="round"
                 d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 11H6a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2v-6a8.001 8.001 0 0115.356-2z" />
         </svg>
+      `,
+      Sun: `
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+             viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M12 3v1m0 16v1m8.66-8.66h-1M4.34 12.66h-1m15.364 4.95l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
+        </svg>
+      `,
+      Moon: `
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+             viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+        </svg>
       `
     };
 
     /********************************************************
-     * Constants, State, and Ephemeral Variables
+     * Global State
      ********************************************************/
     const presetBids = [120, 125, 130, 135, 140, 'other'];
     const DEFAULT_STATE = {
@@ -278,73 +336,125 @@ nav ul li a:hover {
         us: null,
         Dem: null
       },
-      lastBidAmount: null, // New property
-      lastBidTeam: null     // New property
+      lastBidAmount: null,
+      lastBidTeam: null
     };
-
     let state = { ...DEFAULT_STATE };
 
-    // Temporary variables to avoid full re-renders on every keystroke
+    // ephemeral
     let ephemeralCustomBid = '';
     let ephemeralPoints = '';
 
-    // Key to store the active game state in localStorage
+    // localStorage keys
     const ACTIVE_GAME_KEY = 'activeGameState';
+    const DARK_MODE_KEY = 'darkModeEnabled';
 
     /********************************************************
-     * Utility Functions
+     * Utility
      ********************************************************/
     const getLocalStorage = (key) => JSON.parse(localStorage.getItem(key)) || [];
     const setLocalStorage = (key, value) => localStorage.setItem(key, JSON.stringify(value));
 
-    // Generic function for deleting from localStorage
-    function deleteGame(key, index, confirmText) {
-      const list = getLocalStorage(key);
-      if (!confirm(`Are you sure you want to delete this ${confirmText}?`)) return;
-      list.splice(index, 1);
-      setLocalStorage(key, list);
-      renderSavedGames();
-      renderFreezerGames();
+    /********************************************************
+     * Dark Mode
+     ********************************************************/
+    function toggleDarkMode(event) {
+      // This toggles .dark on <html>, not just the menu
+      event.stopPropagation();
+      const htmlElement = document.documentElement;
+      const isDarkMode = htmlElement.classList.toggle('dark'); 
+      localStorage.setItem(DARK_MODE_KEY, isDarkMode);
+      updateDarkModeButton(isDarkMode);
+      updateMetaThemeColor(isDarkMode);
     }
 
-    function sanitizeHTML(str) {
-      const temp = document.createElement('div');
-      temp.textContent = str;
-      return temp.innerHTML;
-    }
-
-    function validateBid(value) {
-      const num = +value;
-      if (isNaN(num)) return 'Bid must be a number';
-      if (num % 5 !== 0) return 'Bid must be divisible by 5';
-      if (num > 180 && num !== 360) return 'Bid must be ≤180 or 360';
-      return '';
-    }
-
-    function validatePoints(value) {
-      const num = +value;
-      if (isNaN(num)) return 'Points must be a number';
-      if (num < 0) return 'Points cannot be negative';
-      if (num % 5 !== 0) return 'Points must be divisible by 5';
-      if (num > 180 && num !== 360) return 'Points must be 0-180 or 360';
-      return '';
-    }
-
-    /**
-     * Saves the current game state to localStorage.
-     */
-    function saveCurrentGameState() {
-      if (!state.gameOver) {
-        localStorage.setItem(ACTIVE_GAME_KEY, JSON.stringify(state));
-        showSaveIndicator();
-      } else {
-        localStorage.removeItem(ACTIVE_GAME_KEY);
+    function updateDarkModeButton(isDarkMode) {
+      const darkModeIcon = document.getElementById('darkModeIcon');
+      const darkModeLabel = document.getElementById('darkModeLabel');
+      if (darkModeIcon && darkModeLabel) {
+        // Switch the icon from moon to sun
+        darkModeIcon.innerHTML = isDarkMode ? Icons.Sun : Icons.Moon;
+        // Switch the label
+        darkModeLabel.textContent = isDarkMode ? 'Light Mode' : 'Dark Mode';
       }
     }
 
-    /**
-     * Loads the saved game state from localStorage, if any.
-     */
+    function initializeDarkMode() {
+      // If the user last had dark mode on, set it again
+      const isDarkMode = JSON.parse(localStorage.getItem(DARK_MODE_KEY));
+      if (isDarkMode) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      updateDarkModeButton(isDarkMode);
+      updateMetaThemeColor(isDarkMode);
+    }
+
+    function updateMetaThemeColor(isDarkMode) {
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+      if (metaThemeColor) {
+        metaThemeColor.setAttribute('content', isDarkMode ? '#1a202c' : '#ffffff');
+      }
+    }
+
+    /********************************************************
+     * Page Behavior: Show/hide nav, modals, etc.
+     ********************************************************/
+    function toggleMenu(event) {
+      event.stopPropagation();
+      const menu = document.getElementById("menu");
+      menu.classList.toggle("show");
+    }
+    function closeMenu() {
+      const menu = document.getElementById("menu");
+      menu.classList.remove("show");
+    }
+    document.addEventListener("click", function (event) {
+      const menu = document.getElementById("menu");
+      const hamburgerMenu = document.querySelector(".hamburger-menu");
+      if (
+        !menu.contains(event.target) &&
+        !hamburgerMenu.contains(event.target) &&
+        menu.classList.contains("show")
+      ) {
+        closeMenu();
+      }
+    });
+
+    function openSavedGamesModal() {
+      renderSavedGames();
+      renderFreezerGames();
+      document.getElementById('savedGamesModal').classList.remove('hidden');
+      document.getElementById('savedGamesModal').focus();
+    }
+    function closeSavedGamesModal() {
+      document.getElementById('savedGamesModal').classList.add('hidden');
+    }
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        closeSavedGamesModal();
+      }
+    });
+
+    /********************************************************
+     * Save Indicator
+     ********************************************************/
+    function showSaveIndicator() {
+      const indicator = document.getElementById('saveIndicator');
+      if (indicator) {
+        indicator.classList.remove('hidden');
+        indicator.classList.add('show');
+        setTimeout(() => {
+          indicator.classList.remove('show');
+          indicator.classList.add('hidden');
+        }, 1000);
+      }
+    }
+
+    /********************************************************
+     * Load/Save Game
+     ********************************************************/
     function loadCurrentGameState() {
       const savedState = localStorage.getItem(ACTIVE_GAME_KEY);
       if (savedState) {
@@ -354,69 +464,47 @@ nav ul li a:hover {
           renderApp();
         } catch (error) {
           console.error('Failed to parse saved game state:', error);
-          localStorage.removeItem(ACTIVE_GAME_KEY); // Remove corrupted data
+          localStorage.removeItem(ACTIVE_GAME_KEY); 
         }
       }
     }
 
-    /**
-     * Shows the "Saved" indicator briefly.
-     */
-    function showSaveIndicator() {
-      const indicator = document.getElementById('saveIndicator');
-      if (indicator) {
-        indicator.classList.remove('hidden');
-        indicator.classList.add('show');
-        setTimeout(() => {
-          indicator.classList.remove('show');
-          indicator.classList.add('hidden');
-        }, 1000); // Show for 1 second
+    function saveCurrentGameState() {
+      if (!state.gameOver) {
+        localStorage.setItem(ACTIVE_GAME_KEY, JSON.stringify(state));
+        showSaveIndicator();
+      } else {
+        localStorage.removeItem(ACTIVE_GAME_KEY);
       }
-    }
-
-    /**
-     * Updates the application state.
-     * Note: This function no longer auto-saves. Saving is handled separately.
-     * @param {Object} updates - The state updates.
-     */
-    function updateState(updates) {
-      state = { ...state, ...updates };
-      renderApp();
-      // Auto-save is removed to control when to save
     }
 
     /********************************************************
-     * Event Handlers (Click, Submit)
+     * Event Handlers for Bids, Rounds, Undo, etc.
      ********************************************************/
     function handleTeamClick(team) {
       if (state.gameOver) return;
-
       if (state.biddingTeam === team) {
-        if (state.biddingTeam) {
-          // Save the current score input state
-          state.savedScoreInputStates[team] = {
-            bidAmount: state.bidAmount,
-            customBidValue: state.customBidValue,
-            showCustomBid: state.showCustomBid,
-            enterBidderPoints: state.enterBidderPoints,
-            error: state.error
-          };
-          // Trigger slide-up by removing 'show' class
-          updateState({
-            biddingTeam: '',
-            bidAmount: '',
-            showCustomBid: false,
-            customBidValue: '',
-            enterBidderPoints: false,
-            error: ''
-          });
-        }
+        // Hide the input for this team
+        state.savedScoreInputStates[team] = {
+          bidAmount: state.bidAmount,
+          customBidValue: state.customBidValue,
+          showCustomBid: state.showCustomBid,
+          enterBidderPoints: state.enterBidderPoints,
+          error: state.error
+        };
+        updateState({
+          biddingTeam: '',
+          bidAmount: '',
+          showCustomBid: false,
+          customBidValue: '',
+          enterBidderPoints: false,
+          error: ''
+        });
       } else {
-        // Clear any saved states for the other team
+        // Switching to a different team
         const otherTeam = team === 'us' ? 'Dem' : 'us';
         state.savedScoreInputStates[otherTeam] = null;
 
-        // Set the new team
         let newState = {
           biddingTeam: team,
           bidAmount: '',
@@ -425,18 +513,12 @@ nav ul li a:hover {
           enterBidderPoints: false,
           error: ''
         };
-
-        // If there's a saved state for the new team, restore it
         const savedState = state.savedScoreInputStates[team];
         if (savedState) {
           newState = { ...newState, ...savedState };
         }
-
-        // Trigger slide-down by adding 'show' class
         updateState(newState);
       }
-
-      // Reset ephemeral variables
       ephemeralCustomBid = '';
       ephemeralPoints = '';
     }
@@ -449,12 +531,9 @@ nav ul li a:hover {
         ephemeralCustomBid = '';
         updateState({ showCustomBid: false, bidAmount: value.toString(), customBidValue: '' });
       }
-
-      // Update last bid immediately
       if (value !== 'other') {
         updateState({ lastBidAmount: value.toString(), lastBidTeam: state.biddingTeam });
       } else {
-        // Do not update lastBidAmount here; it will be updated in handleCustomBidChange
         updateState({ lastBidAmount: null, lastBidTeam: null });
       }
     }
@@ -462,18 +541,17 @@ nav ul li a:hover {
     function handleCustomBidChange(e) {
       ephemeralCustomBid = e.target.value;
       const validationError = validateBid(ephemeralCustomBid);
-      
-      if (validationError === '') {
+      if (!validationError) {
         updateState({
           customBidValue: ephemeralCustomBid,
-          bidAmount: ephemeralCustomBid, // Set bidAmount to the valid custom bid
+          bidAmount: ephemeralCustomBid,
           lastBidAmount: ephemeralCustomBid,
           lastBidTeam: state.biddingTeam
         });
       } else {
         updateState({
           customBidValue: ephemeralCustomBid,
-          bidAmount: '', // Clear bidAmount if the custom bid is invalid
+          bidAmount: '',
           lastBidAmount: null,
           lastBidTeam: null
         });
@@ -487,30 +565,23 @@ nav ul li a:hover {
 
     function handleFormSubmit(e) {
       e.preventDefault();
-
       const { biddingTeam, bidAmount, rounds, enterBidderPoints } = state;
       const pointsInput = document.getElementById('pointsInput');
-      
       if (!pointsInput) {
         updateState({ error: 'Points input field not found.' });
         return;
       }
-
       const points = pointsInput.value;
-
       if (!biddingTeam || !bidAmount) {
         updateState({ error: 'Please select both team and bid.' });
         return;
       }
-
       const bidError = validateBid(bidAmount);
       const pointsError = validatePoints(points);
-
       if (bidError || pointsError) {
         updateState({ error: bidError || pointsError });
         return;
       }
-
       const bid = Number(bidAmount);
       const pointsValue = Number(points);
 
@@ -519,13 +590,11 @@ nav ul li a:hover {
         : pointsValue === 360
           ? 360
           : 180 - pointsValue;
-
       const nonBidderPoints = pointsValue === 360 ? 0 : 180 - bidderPoints;
 
       const usPoints = biddingTeam === 'us'
         ? (bidderPoints < bid ? -bid : bidderPoints)
         : nonBidderPoints;
-
       const DemPoints = biddingTeam === 'Dem'
         ? (bidderPoints < bid ? -bid : bidderPoints)
         : nonBidderPoints;
@@ -535,7 +604,6 @@ nav ul li a:hover {
         us: prevTotals.us + usPoints,
         Dem: prevTotals.Dem + DemPoints
       };
-
       const newRounds = [
         ...rounds,
         {
@@ -547,17 +615,15 @@ nav ul li a:hover {
         }
       ];
 
+      // Evaluate game end conditions
       const wonOnBid = biddingTeam === 'us'
         ? usPoints >= bid && usPoints > 0
         : DemPoints >= bid && DemPoints > 0;
-
       const setOtherTeam = biddingTeam === 'us' ? DemPoints < 0 : usPoints < 0;
-
       const pointSpread = Math.abs(newRunningTotals.us - newRunningTotals.Dem);
       const spreadWinner = newRunningTotals.us > newRunningTotals.Dem ? 'us' : 'Dem';
       const spreadCondition = pointSpread >= 1000;
 
-      // **New Variables for Additional Win Condition**
       const otherTeam = biddingTeam === 'us' ? 'Dem' : 'us';
       const otherTeamTotal = newRunningTotals[otherTeam];
       const biddingTeamFailedBid = biddingTeam === 'us' ? usPoints < 0 : DemPoints < 0;
@@ -566,7 +632,6 @@ nav ul li a:hover {
       let finalWinner = null;
       let endReason = '';
 
-      // **Updated Win Conditions**
       if (
         ((biddingTeam === 'us' && newRunningTotals.us >= 500) ||
          (biddingTeam === 'Dem' && newRunningTotals.Dem >= 500)) &&
@@ -576,11 +641,12 @@ nav ul li a:hover {
         finalWinner = biddingTeam;
         endReason = 'reached 500 points';
       } 
-      // **New Win Condition: Bidding Team Failed Bid and Other Team >= 500**
       else if (biddingTeamFailedBid && otherTeamTotal >= 500) {
         gameEnded = true;
         finalWinner = otherTeam;
-        endReason = `${otherTeam} reached 500 points after ${biddingTeam === 'us' ? 'our team' : 'Dem team'} failed their bid`;
+        endReason = `${otherTeam} reached 500 points after ${
+          biddingTeam === 'us' ? 'our team' : 'Dem team'
+        } failed their bid`;
       }
       else if (spreadCondition) {
         gameEnded = true;
@@ -590,11 +656,9 @@ nav ul li a:hover {
 
       ephemeralCustomBid = '';
       ephemeralPoints = '';
-
       if (gameEnded) {
         alert(`Game Over! ${finalWinner === 'us' ? 'Our Team' : 'Dem Team'} wins by ${endReason}.`);
       }
-
       updateState({
         rounds: newRounds,
         gameOver: gameEnded,
@@ -606,8 +670,6 @@ nav ul li a:hover {
         enterBidderPoints: false,
         error: ''
       });
-
-      // Save the state after adding a new round
       saveCurrentGameState();
     }
 
@@ -616,13 +678,11 @@ nav ul li a:hover {
       const newRounds = state.rounds.slice(0, -1);
       let newLastBidAmount = null;
       let newLastBidTeam = null;
-
       if (newRounds.length > 0) {
         const lastRound = newRounds[newRounds.length - 1];
         newLastBidAmount = lastRound.bidAmount.toString();
         newLastBidTeam = lastRound.biddingTeam;
       }
-
       updateState({
         rounds: newRounds,
         gameOver: false,
@@ -630,15 +690,12 @@ nav ul li a:hover {
         lastBidAmount: newLastBidAmount,
         lastBidTeam: newLastBidTeam
       });
-
-      // Save the state after undoing a round
       saveCurrentGameState();
     }
 
     function handleNewGame() {
       if (state.rounds.length > 0) {
         if (!confirm("Do you want to start a new game?")) return;
-
         if (confirm("Do you want to save the previous game result before starting a new game?")) {
           const player1 = prompt("Enter the names for Us:");
           if (!player1) {
@@ -665,10 +722,7 @@ nav ul li a:hover {
           alert("Game saved successfully.");
         }
       }
-      
-      // Clear the active game state
       localStorage.removeItem(ACTIVE_GAME_KEY);
-      
       ephemeralCustomBid = '';
       ephemeralPoints = '';
       updateState({ ...DEFAULT_STATE });
@@ -702,108 +756,27 @@ nav ul li a:hover {
       });
       setLocalStorage('savedGames', savedGames);
       alert("Game saved successfully.");
-      
-      // Clear the active game state
       localStorage.removeItem(ACTIVE_GAME_KEY);
-      
-      // Reset the game
       ephemeralCustomBid = '';
       ephemeralPoints = '';
       updateState({ ...DEFAULT_STATE });
     }
 
     /********************************************************
-     * Freezer and Saved Games
+     * Freezer & Saved Games
      ********************************************************/
-    function openSavedGamesModal() {
+    function deleteGame(key, index, confirmText) {
+      const list = getLocalStorage(key);
+      if (!confirm(`Are you sure you want to delete this ${confirmText}?`)) return;
+      list.splice(index, 1);
+      setLocalStorage(key, list);
       renderSavedGames();
       renderFreezerGames();
-      document.getElementById('savedGamesModal').classList.remove('hidden');
-      // Set focus to modal for accessibility
-      document.getElementById('savedGamesModal').focus();
-    }
-
-    function closeSavedGamesModal() {
-      document.getElementById('savedGamesModal').classList.add('hidden');
-    }
-
-    function renderSavedGames() {
-      const savedGames = getLocalStorage('savedGames');
-      const savedGamesListEl = document.getElementById('savedGamesList');
-      if (!savedGames.length) {
-        savedGamesListEl.innerHTML = `<p class="text-gray-600">No completed games available.</p>`;
-        return;
-      }
-      savedGamesListEl.innerHTML = savedGames
-        .map((game, index) => `
-          <div class="border p-4 rounded-lg shadow-sm bg-gray-50">
-            <div class="flex justify-between items-center">
-              <div>
-                <p class="font-semibold">Players:</p>
-                <p>${sanitizeHTML(game.player1)} vs ${sanitizeHTML(game.player2)}</p>
-              </div>
-              <button onclick="deleteSavedGame(${index})" class="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500" aria-label="Delete Saved Game">
-                ${Icons.Trash}
-              </button>
-            </div>
-            <div class="mt-2">
-              <p class="font-semibold">Final Score:</p>
-              <p>Us: ${game.finalScore.us} | Dem: ${game.finalScore.Dem}</p>
-            </div>
-            <div class="mt-2">
-              <p class="font-semibold">Date:</p>
-              <p>${new Date(game.timestamp).toLocaleString()}</p>
-            </div>
-          </div>
-        `)
-        .join('');
-    }
-
-    function renderFreezerGames() {
-      const freezerGames = getLocalStorage('freezerGames');
-      const freezerGamesListEl = document.getElementById('freezerGamesList');
-      if (!freezerGames.length) {
-        freezerGamesListEl.innerHTML = `<p class="text-gray-600">No freezer games available.</p>`;
-        return;
-      }
-      freezerGamesListEl.innerHTML = freezerGames
-        .map((game, index) => `
-          <div class="border p-4 rounded-lg shadow-sm bg-gray-50">
-            <div class="flex justify-between items-center">
-              <div>
-                <p class="font-semibold">Name:</p>
-                <p>${sanitizeHTML(game.name)}</p>
-              </div>
-              <div class="flex space-x-2">
-                <button onclick="loadFreezerGame(${index})" class="text-blue-600 hover:text-blue-800 flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Load Freezer Game">
-                  ${Icons.Load}Load
-                </button>
-                <button onclick="deleteFreezerGame(${index})" class="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500" aria-label="Delete Freezer Game">
-                  ${Icons.Trash}
-                </button>
-              </div>
-            </div>
-            <div class="mt-2">
-              <p class="font-semibold">Final Score:</p>
-              <p>Us: ${game.finalScore.us} | Dem: ${game.finalScore.Dem}</p>
-            </div>
-            <div class="mt-2">
-              <p class="font-semibold">Last Bid:</p>
-              <p>${game.lastBid}</p>
-            </div>
-            <div class="mt-2">
-              <p class="font-semibold">Date Frozen:</p>
-              <p>${new Date(game.timestamp).toLocaleString()}</p>
-            </div>
-          </div>
-        `)
-        .join('');
     }
 
     function deleteSavedGame(index) {
       deleteGame('savedGames', index, 'saved game');
     }
-
     function deleteFreezerGame(index) {
       deleteGame('freezerGames', index, 'freezer game');
     }
@@ -830,7 +803,6 @@ nav ul li a:hover {
         us: acc.us + round.usPoints,
         Dem: acc.Dem + round.DemPoints
       }), { us: 0, Dem: 0 });
-
       freezerGames.push({
         name: gameName,
         finalScore: { us: totals.us, Dem: totals.Dem },
@@ -840,10 +812,7 @@ nav ul li a:hover {
       });
       setLocalStorage('freezerGames', freezerGames);
       alert("Current game with complete history has been frozen successfully.");
-      
-      // Clear the active game state
       localStorage.removeItem(ACTIVE_GAME_KEY);
-      
       ephemeralCustomBid = '';
       ephemeralPoints = '';
       updateState({ ...DEFAULT_STATE });
@@ -874,44 +843,141 @@ nav ul li a:hover {
       setLocalStorage('freezerGames', freezerGames);
       alert(`Freezer game "${freezerGame.name}" loaded successfully.`);
       closeSavedGamesModal();
-      
-      // Save the state after loading a freezer game
       saveCurrentGameState();
+    }
+
+    function renderSavedGames() {
+      const savedGames = getLocalStorage('savedGames');
+      const savedGamesListEl = document.getElementById('savedGamesList');
+      if (!savedGames.length) {
+        savedGamesListEl.innerHTML = `<p class="text-gray-600 dark:text-gray-300">No completed games available.</p>`;
+        return;
+      }
+      savedGamesListEl.innerHTML = savedGames
+        .map((game, index) => `
+          <div class="border p-4 rounded-lg shadow-sm bg-gray-50 dark:bg-gray-700">
+            <div class="flex justify-between items-center">
+              <div>
+                <p class="font-semibold text-gray-800 dark:text-gray-100">Players:</p>
+                <p>${game.player1} vs ${game.player2}</p>
+              </div>
+              <button 
+                onclick="deleteSavedGame(${index})" 
+                class="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500
+                       dark:text-red-400 dark:hover:text-red-600" 
+                aria-label="Delete Saved Game"
+              >
+                ${Icons.Trash}
+              </button>
+            </div>
+            <div class="mt-2">
+              <p class="font-semibold text-gray-800 dark:text-gray-100">Final Score:</p>
+              <p>Us: ${game.finalScore.us} | Dem: ${game.finalScore.Dem}</p>
+            </div>
+            <div class="mt-2">
+              <p class="font-semibold text-gray-800 dark:text-gray-100">Date:</p>
+              <p>${new Date(game.timestamp).toLocaleString()}</p>
+            </div>
+          </div>
+        `)
+        .join('');
+    }
+
+    function renderFreezerGames() {
+      const freezerGames = getLocalStorage('freezerGames');
+      const freezerGamesListEl = document.getElementById('freezerGamesList');
+      if (!freezerGames.length) {
+        freezerGamesListEl.innerHTML = `<p class="text-gray-600 dark:text-gray-300">No freezer games available.</p>`;
+        return;
+      }
+      freezerGamesListEl.innerHTML = freezerGames
+        .map((game, index) => `
+          <div class="border p-4 rounded-lg shadow-sm bg-gray-50 dark:bg-gray-700">
+            <div class="flex justify-between items-center">
+              <div>
+                <p class="font-semibold text-gray-800 dark:text-gray-100">Name:</p>
+                <p>${game.name}</p>
+              </div>
+              <div class="flex space-x-2">
+                <button 
+                  onclick="loadFreezerGame(${index})" 
+                  class="text-blue-600 hover:text-blue-800 flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 
+                         dark:text-blue-400 dark:hover:text-blue-600" 
+                  aria-label="Load Freezer Game"
+                >
+                  ${Icons.Load}Load
+                </button>
+                <button 
+                  onclick="deleteFreezerGame(${index})" 
+                  class="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 
+                         dark:text-red-400 dark:hover:text-red-600" 
+                  aria-label="Delete Freezer Game"
+                >
+                  ${Icons.Trash}
+                </button>
+              </div>
+            </div>
+            <div class="mt-2">
+              <p class="font-semibold text-gray-800 dark:text-gray-100">Final Score:</p>
+              <p>Us: ${game.finalScore.us} | Dem: ${game.finalScore.Dem}</p>
+            </div>
+            <div class="mt-2">
+              <p class="font-semibold text-gray-800 dark:text-gray-100">Last Bid:</p>
+              <p>${game.lastBid}</p>
+            </div>
+            <div class="mt-2">
+              <p class="font-semibold text-gray-800 dark:text-gray-100">Date Frozen:</p>
+              <p>${new Date(game.timestamp).toLocaleString()}</p>
+            </div>
+          </div>
+        `)
+        .join('');
+    }
+
+    /********************************************************
+     * Helper: setState + rerender
+     ********************************************************/
+    function updateState(updates) {
+      state = { ...state, ...updates };
+      renderApp();
     }
 
     /********************************************************
      * Render Functions
      ********************************************************/
     function renderTeamCard(team, total, colorClass) {
-      const isSelected = state.biddingTeam === team;
-      const bgColor = isSelected ? `${colorClass}-900` : `${colorClass}-500`;
-      const hoverBgColor = isSelected ? `${colorClass}-900` : `${colorClass}-500`;
-      const predefinedTextColor = isSelected ? `${colorClass}-900` : `${colorClass}-700`;
-
+      const isSelected = (state.biddingTeam === team);
+      // highlight if selected
+      const backgroundClass = isSelected
+        ? `bg-${colorClass}-900 text-white`
+        : `bg-${colorClass}-500 text-white`;
       return `
         <div
-          class="bg-${bgColor} cursor-pointer hover:bg-${hoverBgColor} transition-colors
-                 rounded-lg shadow-md p-4 flex flex-col items-center space-y-2 flex-1 min-w-0"
+          class="${backgroundClass} cursor-pointer hover:${backgroundClass} transition-colors
+                 rounded-md shadow-md flex items-center justify-center w-40 h-24"
           onclick="handleTeamClick('${team}')"
           tabindex="0"
           role="button"
           aria-pressed="${isSelected}"
           aria-label="Select ${team === 'us' ? 'Our Team' : 'Dem Team'}"
         >
-          <h2 class="text-xl font-semibold text-white capitalize">
-            ${team === 'us' ? 'Us' : 'Dem'}
-          </h2>
-          <p class="text-3xl font-bold text-white text-outline">${total}</p>
+          <div class="flex flex-col items-center">
+            <h2 class="text-xl font-semibold capitalize">
+              ${team === 'us' ? 'Us' : 'Dem'}
+            </h2>
+            <p class="text-2xl font-bold">${total}</p>
+          </div>
         </div>
       `;
     }
 
     function renderRoundCard(currentRound, bidDisplay) {
       return `
-        <div class="bg-white border border-gray-200 rounded-lg shadow flex flex-col items-center justify-center p-4 flex-1 min-w-0">
+        <div class="bg-white border border-gray-200 rounded-md shadow flex flex-col items-center justify-center p-4 flex-1 min-w-0 w-40 h-24
+                    dark:bg-gray-800 dark:border-gray-700">
           <div class="text-center space-y-1">
-            <h2 class="text-2xl font-bold text-gray-700">Round</h2>
-            <p class="text-4xl font-extrabold text-gray-900">${currentRound}</p>
+            <h2 class="text-xl font-bold text-gray-700 dark:text-gray-100">Round</h2>
+            <p class="text-2xl font-extrabold text-gray-900 dark:text-gray-100">${currentRound}</p>
             ${bidDisplay}
           </div>
         </div>
@@ -920,7 +986,8 @@ nav ul li a:hover {
 
     function renderErrorAlert(errorMsg) {
       return `
-        <div role="alert" class="flex items-center border border-red-400 rounded-md p-4 bg-red-50 text-red-700 space-x-3">
+        <div role="alert" class="flex items-center border border-red-400 rounded-md p-4 bg-red-50 text-red-700 space-x-3
+                                dark:bg-red-700 dark:border-red-600 dark:text-red-100">
           <div class="flex-shrink-0">${Icons.AlertCircle}</div>
           <div class="flex-1">${errorMsg}</div>
         </div>
@@ -938,42 +1005,41 @@ nav ul li a:hover {
             ? 'Dem Points (Bidding Team)'
             : 'Our Points (Non-Bidding Team)';
 
-      // Determine button colors based on bidding team
-      let biddingTeamColor = 'blue'; // default
-      let nonBiddingTeamColor = 'red'; // default
-
+      let biddingTeamColor = 'blue';
+      let nonBiddingTeamColor = 'red';
       if (biddingTeam === 'Dem') {
         biddingTeamColor = 'red';
         nonBiddingTeamColor = 'blue';
-      } else if (biddingTeam === 'us') {
-        biddingTeamColor = 'blue';
-        nonBiddingTeamColor = 'red';
       }
+
+      const biddingTeamClasses = enterBidderPoints
+        ? `bg-${biddingTeamColor}-600 text-white shadow hover:bg-${biddingTeamColor}-700 dark:bg-${biddingTeamColor}-700 dark:hover:bg-${biddingTeamColor}-800`
+        : `bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-500`;
+
+      const nonBiddingTeamClasses = !enterBidderPoints
+        ? `bg-${nonBiddingTeamColor}-600 text-white shadow hover:bg-${nonBiddingTeamColor}-700 dark:bg-${nonBiddingTeamColor}-700 dark:hover:bg-${nonBiddingTeamColor}-800`
+        : `bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-500`;
 
       return `
         <div class="space-y-6">
           <div>
-            <label for="pointsToggle" class="block text-sm font-medium mb-2">Enter Points For</label>
+            <label for="pointsToggle" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-200">Enter Points For</label>
             <div class="flex gap-4">
+              <!-- Bidding Team Button -->
               <button
                 type="button"
-                class="flex-1 rounded-full px-4 py-2 text-sm font-medium ${
-                  enterBidderPoints
-                    ? `bg-${biddingTeamColor}-600 text-white shadow hover:bg-${biddingTeamColor}-700`
-                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'
-                } transition focus:outline-none focus:ring-2 focus:ring-${biddingTeamColor}-500 focus:ring-opacity-50"
+                class="flex-1 rounded-full px-4 py-2 text-sm font-medium ${biddingTeamClasses} transition focus:outline-none 
+                       focus:ring-2 focus:ring-${biddingTeamColor}-500 focus:ring-opacity-50"
                 onclick="handleBiddingPointsToggle(true)"
                 aria-pressed="${enterBidderPoints}"
               >
                 Bidding Team
               </button>
+              <!-- Non-Bidding Team Button -->
               <button
                 type="button"
-                class="flex-1 rounded-full px-4 py-2 text-sm font-medium ${
-                  !enterBidderPoints
-                    ? `bg-${nonBiddingTeamColor}-600 text-white shadow hover:bg-${nonBiddingTeamColor}-700`
-                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'
-                } transition focus:outline-none focus:ring-2 focus:ring-${nonBiddingTeamColor}-500 focus:ring-opacity-50"
+                class="flex-1 rounded-full px-4 py-2 text-sm font-medium ${nonBiddingTeamClasses} transition focus:outline-none 
+                       focus:ring-2 focus:ring-${nonBiddingTeamColor}-500 focus:ring-opacity-50"
                 onclick="handleBiddingPointsToggle(false)"
                 aria-pressed="${!enterBidderPoints}"
               >
@@ -983,25 +1049,26 @@ nav ul li a:hover {
           </div>
 
           <div>
-            <label for="pointsInput" class="block text-sm font-medium mb-2">${labelText}</label>
+            <label for="pointsInput" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-200">${labelText}</label>
             <div class="flex flex-col sm:flex-row sm:items-center sm:gap-4">
               <input
                 id="pointsInput"
                 type="number"
-                inputmode="numeric"       
-                pattern="[0-9]*"          
+                inputmode="numeric"
+                pattern="[0-9]*"
                 min="0"
                 max="360"
                 placeholder="Enter points"
                 class="w-full sm:w-1/2 border border-gray-300 rounded-lg px-4 py-2
-                       focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                       focus:outline-none focus:ring-2 focus:ring-blue-500 transition 
+                       dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100 dark:focus:ring-blue-400"
                 aria-label="Enter Points"
               />
               <button
                 type="submit"
                 class="mt-4 sm:mt-0 bg-blue-600 text-white px-6 py-2 rounded-lg shadow
                        hover:bg-blue-700 focus:outline-none focus:ring-2
-                       focus:ring-blue-500 transition"
+                       focus:ring-blue-500 transition dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-400"
               >
                 Submit
               </button>
@@ -1012,18 +1079,22 @@ nav ul li a:hover {
     }
 
     function renderScoreInputCard() {
-      const { biddingTeam, bidAmount, customBidValue, showCustomBid, rounds, error, gameOver } = state;
+      const { biddingTeam, bidAmount, customBidValue, showCustomBid, rounds, gameOver } = state;
       if (gameOver || !biddingTeam) return '';
       const showPointsSection = bidAmount || showCustomBid;
 
       return `
-        <div class="bg-white border border-gray-200 rounded-lg shadow-lg">
-          <div class="border-b border-gray-200 p-5 flex justify-between items-center">
-            <h2 class="text-xl font-bold">Score Input for ${biddingTeam === 'us' ? 'Our Team' : 'Dem Team'}</h2>
+        <div class="bg-white border border-gray-200 rounded-lg shadow-lg dark:bg-gray-800 dark:border-gray-700">
+          <div class="border-b border-gray-200 p-5 flex justify-between items-center dark:border-gray-700">
+            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">
+              Score Input for ${biddingTeam === 'us' ? 'Our Team' : 'Dem Team'}
+            </h2>
             <button
               class="flex items-center border border-gray-300 rounded px-3 py-2 text-sm
-                     text-gray-700 hover:bg-gray-200 transition disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onclick="handleUndo()" ${!rounds.length ? 'disabled' : ''}
+                     text-gray-700 hover:bg-gray-200 transition disabled:opacity-50 
+                     focus:outline-none focus:ring-2 focus:ring-blue-500 
+                     dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700 dark:focus:ring-blue-400"
+              onclick="handleUndo(event)" ${!rounds.length ? 'disabled' : ''}
               title="Undo Last Round"
               aria-label="Undo Last Round"
             >
@@ -1032,22 +1103,22 @@ nav ul li a:hover {
           </div>
           <div class="p-6 score-input-container ${state.biddingTeam ? 'show' : ''}">
             <form onsubmit="handleFormSubmit(event)" class="space-y-6">
-             
               <div>
-                <label for="bidAmount" class="block text-sm font-medium mb-2">Bid Amount</label>
+                <label for="bidAmount" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-200">Bid Amount</label>
                 <div class="flex flex-wrap gap-3">
                   ${presetBids.map((bid) => {
-                    const isSelected = bid === 'other'
+                    const isSelected = (bid === 'other')
                       ? showCustomBid
-                      : bidAmount === String(bid);
+                      : (bidAmount === String(bid));
                     const variant = isSelected
-                      ? 'bg-blue-600 text-white shadow hover:bg-blue-700'
-                      : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100';
-                    const roundedClass = bid === 'other' ? 'rounded-full' : 'rounded-lg';
+                      ? 'bg-blue-600 text-white shadow hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700'
+                      : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-500';
+                    const roundedClass = (bid === 'other') ? 'rounded-full' : 'rounded-lg';
                     return `
                       <button
                         type="button"
-                        class="px-4 py-2 text-sm font-medium ${variant} ${roundedClass} transition focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        class="px-4 py-2 text-sm font-medium ${variant} ${roundedClass} transition 
+                               focus:outline-none focus:ring-2 focus:ring-blue-500 dark:ring-blue-400"
                         onclick="handleBidSelect('${bid}')"
                         aria-pressed="${isSelected}"
                         aria-label="Select Bid ${bid === 'other' ? 'Other' : bid}"
@@ -1063,25 +1134,24 @@ nav ul li a:hover {
                       <div class="mt-4 flex flex-col sm:flex-row sm:items-center sm:gap-4">
                         <input
                           type="number"
-                          inputmode="numeric"       
-                          pattern="[0-9]*"          
+                          inputmode="numeric"
+                          pattern="[0-9]*"
                           step="5"
                           value="${customBidValue}"
                           onchange="handleCustomBidChange(event)"
                           placeholder="Enter custom bid"
                           class="w-full sm:w-1/2 border border-gray-300 rounded-lg px-4 py-2
-                                 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                                 focus:outline-none focus:ring-2 focus:ring-blue-500 transition
+                                 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100 dark:focus:ring-blue-400"
                           aria-label="Custom Bid Amount"
                         />
-                        <span class="text-sm text-gray-500">Must be divisible by 5 (≤180 or 360)</span>
+                        <span class="text-sm text-gray-500 dark:text-gray-300">Must be divisible by 5 (≤180 or 360)</span>
                       </div>
                     `
                     : ''
                 }
               </div>
-
-             
-              ${showPointsSection ? renderPointsInput() : ''}
+              ${ showPointsSection ? renderPointsInput() : '' }
             </form>
           </div>
         </div>
@@ -1091,10 +1161,11 @@ nav ul li a:hover {
     function renderHistoryCard() {
       const { rounds } = state;
       return `
-        <div class="bg-white border border-gray-200 rounded-lg shadow-lg">
-          <div class="border-b border-gray-200 p-4">
-            <h2 class="text-lg font-bold">History</h2>
-            <div class="grid grid-cols-3 gap-2 pt-3 font-medium text-gray-600 text-sm sm:text-base">
+        <div class="bg-white border border-gray-200 rounded-lg shadow-lg 
+                    dark:bg-gray-800 dark:border-gray-700">
+          <div class="border-b border-gray-200 p-4 dark:border-gray-700">
+            <h2 class="text-lg font-bold text-gray-800 dark:text-gray-100">History</h2>
+            <div class="grid grid-cols-3 gap-2 pt-3 font-medium text-gray-600 dark:text-gray-300 text-sm sm:text-base">
               <div class="text-left">Us</div>
               <div class="text-center">Bid</div>
               <div class="text-right">Dem</div>
@@ -1102,18 +1173,20 @@ nav ul li a:hover {
           </div>
           <div class="p-4">
             <div class="space-y-2">
-              ${rounds.map((round, index) => {
-                const arrow = round.biddingTeam === 'us'
-                  ? `<span class="text-gray-800">←</span><span class="ml-1">${round.bidAmount}</span>`
-                  : `<span class="mr-1">${round.bidAmount}</span><span class="text-gray-800">→</span>`;
-                return `
-                  <div key=${index} class="grid grid-cols-3 gap-2 p-2 bg-gray-50 rounded-lg animate-fade-in text-sm sm:text-base">
-                    <div class="text-left text-gray-800 font-semibold">${round.runningTotals.us}</div>
-                    <div class="flex items-center justify-center">${arrow}</div>
-                    <div class="text-right text-gray-800 font-semibold">${round.runningTotals.Dem}</div>
-                  </div>
-                `;
-              }).join('')}
+              ${
+                rounds.map((round, index) => {
+                  const arrow = round.biddingTeam === 'us'
+                    ? `<span class="text-gray-800 dark:text-gray-100">←</span><span class="ml-1">${round.bidAmount}</span>`
+                    : `<span class="mr-1">${round.bidAmount}</span><span class="text-gray-800 dark:text-gray-100">→</span>`;
+                  return `
+                    <div key="${index}" class="grid grid-cols-3 gap-2 p-2 bg-gray-50 rounded-lg animate-fade-in dark:bg-gray-700">
+                      <div class="text-left text-gray-800 dark:text-gray-100 font-semibold">${round.runningTotals.us}</div>
+                      <div class="flex items-center justify-center">${arrow}</div>
+                      <div class="text-right text-gray-800 dark:text-gray-100 font-semibold">${round.runningTotals.Dem}</div>
+                    </div>
+                  `;
+                }).join('')
+              }
             </div>
           </div>
         </div>
@@ -1125,14 +1198,20 @@ nav ul li a:hover {
       const { winner } = state;
       return `
         <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" role="alertdialog" aria-labelledby="gameOverTitle" aria-modal="true">
-          <div class="bg-white w-full max-w-md rounded-lg shadow-lg">
+          <div class="bg-white w-full max-w-md rounded-lg shadow-lg dark:bg-gray-800">
             <div class="p-6 text-center">
-              <h2 id="gameOverTitle" class="text-3xl font-bold mb-4 animate-fade-in">Game Over!</h2>
-              <p class="text-xl mb-6 animate-fade-in">${winner === 'us' ? 'Our Team' : 'Dem Team'} Wins!</p>
+              <h2 id="gameOverTitle" class="text-3xl font-bold mb-4 animate-fade-in 
+                                          text-gray-800 dark:text-gray-100">
+                Game Over!
+              </h2>
+              <p class="text-xl mb-6 animate-fade-in text-gray-700 dark:text-gray-300">
+                ${winner === 'us' ? 'Our Team' : 'Dem Team'} Wins!
+              </p>
               <button
                 onclick="handleNewGame()"
                 class="bg-blue-600 text-white px-6 py-3 rounded-lg shadow hover:bg-blue-700
-                       focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                       focus:outline-none focus:ring-2 focus:ring-blue-500 transition
+                       dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-400"
               >
                 New Game
               </button>
@@ -1156,12 +1235,11 @@ nav ul li a:hover {
       );
       const currentRound = rounds.length + 1;
 
-      // Get the last bid's team and amount for displaying in the Round box
       let bidDisplay = '';
       if (lastBidAmount && lastBidTeam) {
-        const arrow = lastBidTeam === 'us' ? '←' : '→';
+        const arrow = (lastBidTeam === 'us') ? '←' : '→';
         bidDisplay = `
-          <div class="mt-2 flex items-center justify-center space-x-1">
+          <div class="mt-2 flex items-center justify-center space-x-1 text-gray-700 dark:text-gray-300">
             <span class="font-medium">Bid:</span>
             <span>${lastBidAmount}</span>
             <span>${arrow}</span>
@@ -1170,18 +1248,15 @@ nav ul li a:hover {
       }
 
       document.getElementById('app').innerHTML = `
-        
         <div class="text-center space-y-2">
           <div class="flex flex-col items-center">
-            <!-- Removed the trophy icon -->
-            <!-- ${Icons.Trophy} -->
-            <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-800">Rook!</h1>
+            <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-800 dark:text-gray-100">Rook!</h1>
           </div>
-          <p class="text-md sm:text-lg text-gray-600">Tap a team to start a bid!</p>
+          <p class="text-md sm:text-lg text-gray-600 dark:text-gray-300">Tap a team to start a bid!</p>
         </div>
 
         <!-- Teams and Round -->
-        <div class="flex flex-row space-x-4 flex-wrap">
+        <div class="flex flex-row space-x-4 flex-wrap justify-center">
           ${renderTeamCard('us', totals.us, 'blue')}
           ${renderRoundCard(currentRound, bidDisplay)}
           ${renderTeamCard('Dem', totals.Dem, 'red')}
@@ -1190,7 +1265,7 @@ nav ul li a:hover {
         <!-- Error Alert (if any) -->
         ${error ? `<div>${renderErrorAlert(error)}</div>` : ''}
 
-        <!-- Score Input Card with Sliding Animation -->
+        <!-- Score Input Card -->
         ${renderScoreInputCard()}
 
         <!-- History Card -->
@@ -1202,68 +1277,40 @@ nav ul li a:hover {
     }
 
     /********************************************************
-     * Accessibility: Close Modal with Escape Key
-     ********************************************************/
-    document.addEventListener('keydown', function(event) {
-      if (event.key === 'Escape') {
-        closeSavedGamesModal();
-      }
-    });
-
-    /********************************************************
-     * Event Listeners for Modal Close Button and Initialization
+     * Initialization
      ********************************************************/
     document.addEventListener('DOMContentLoaded', () => {
+      // Close modal button
       const closeBtn = document.getElementById('closeSavedGamesModalBtn');
       if (closeBtn) {
         closeBtn.addEventListener('click', closeSavedGamesModal);
       }
 
-      // Load the saved game state
+      // Load game state from localStorage
       loadCurrentGameState();
 
-      // Register Service Worker
+      // Initialize dark mode from localStorage
+      initializeDarkMode();
+
+      // If you want to register a Service Worker, do so over http/https
+      /*
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
-          navigator.serviceWorker.register('/service-worker.js').then(function(registration) {
-            console.log('ServiceWorker registration successful with scope: ', registration.scope);
-          }, function(err) {
-            console.log('ServiceWorker registration failed: ', err);
-          });
+          navigator.serviceWorker.register('/service-worker.js').then(
+            function(registration) {
+              console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            }, 
+            function(err) {
+              console.log('ServiceWorker registration failed: ', err);
+            }
+          );
         });
       }
+      */
+
+      // Initial render
+      renderApp();
     });
-
-   // Function to toggle the menu visibility
-function toggleMenu() {
-  const menu = document.getElementById("menu");
-  menu.classList.toggle("show");
-}
-
-// Function to close the menu
-function closeMenu() {
-  const menu = document.getElementById("menu");
-  menu.classList.remove("show");
-}
-
-// Event listener to close the menu when clicking outside of it
-document.addEventListener("click", function (event) {
-  const menu = document.getElementById("menu");
-  const hamburgerMenu = document.querySelector(".hamburger-menu");
-
-  // Check if the click is outside the menu and not on the hamburger icon
-  if (
-    !menu.contains(event.target) &&
-    !hamburgerMenu.contains(event.target) &&
-    menu.classList.contains("show")
-  ) {
-    closeMenu();
-  }
-});
-
-    // Initial render
-    renderApp();
-
   </script>
 </body>
 </html>
