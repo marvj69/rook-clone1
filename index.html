@@ -45,6 +45,18 @@
       opacity: 1;
       transform: translateY(0)
     }
+    /* Collapsible stats content */
+.stats-content {
+  overflow: hidden;
+  max-height: 0;
+  transition: all 0.4s ease-in-out;
+  border-top: none;
+}
+
+.stats-content.show {
+  max-height: 1000px; /* large enough to accommodate the content */
+}
+
     .focus-outline:focus {
       outline: 2px dashed #3182ce;
       outline-offset: 2px
@@ -217,7 +229,7 @@
   <div id="menuOverlay" class="menu-overlay" onclick="closeMenuOverlay()" aria-hidden="true"></div>
 
   <div class="absolute top-0 right-0 m-4 p-2 text-gray-800 font-medium text-xs bg-white bg-opacity-70 rounded-full shadow px-3 py-1 dark:bg-gray-800 dark:text-gray-100" style="cursor:pointer" onclick="showEasterEgg()">
-    <p>Version 1.2.0</p>
+    <p>Version 1.2.1</p>
   </div>
 
   <div id="app" class="max-w-4xl mx-auto p-4 sm:p-6 space-y-6"></div>
@@ -1624,59 +1636,107 @@ function closeViewSavedGameModal() {
   function renderStatisticsCard() {
   const stats = getStatistics();
   
-  // If no completed games, return a simple message
+  // If no completed games, show a message but still keep it collapsible:
   if (!stats.totalGames) {
     return `
-      <div class="bg-white border border-gray-200 rounded-xl shadow p-4 dark:bg-gray-800 dark:border-gray-700">
-        <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">Statistics</h2>
-        <p class="text-gray-600 dark:text-gray-300 mt-2">No completed games yet.</p>
+      <div class="bg-white border border-gray-200 rounded-xl shadow dark:bg-gray-800 dark:border-gray-700 mt-4">
+        <!-- Clickable header -->
+        <div 
+          class="cursor-pointer p-4"
+          onclick="toggleStatisticsCard()"
+        >
+          <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">
+            Statistics
+          </h2>
+        </div>
+
+        <!-- Collapsible content (starts collapsed) -->
+        <div id="statisticsContent" class="stats-content">
+          <div class="p-4">
+            <p class="text-gray-600 dark:text-gray-300 mt-2">
+              No completed games yet.
+            </p>
+          </div>
+        </div>
       </div>
     `;
   }
 
-  // Display victory methods and counts
-  const methodRows = Object.entries(stats.methodCount).map(([methodName, count]) => {
-    return `
-      <div class="flex items-center justify-between py-1 border-b last:border-0 border-gray-200 dark:border-gray-700">
-        <span class="text-gray-700 dark:text-gray-300">${methodName}</span>
-        <span class="font-medium text-gray-800 dark:text-gray-100">${count}</span>
-      </div>
-    `;
-  }).join("");
+  // Otherwise, render the actual statistics
+  const methodRows = Object.entries(stats.methodCount)
+    .map(([methodName, count]) => {
+      return `
+        <div class="flex items-center justify-between py-1 border-b last:border-0 border-gray-200 dark:border-gray-700">
+          <span class="text-gray-700 dark:text-gray-300">${methodName}</span>
+          <span class="font-medium text-gray-800 dark:text-gray-100">${count}</span>
+        </div>
+      `;
+    })
+    .join("");
 
   return `
-    <div class="bg-white border border-gray-200 rounded-xl shadow p-5 dark:bg-gray-800 dark:border-gray-700 mt-4">
-      <!-- Title -->
-      <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">Statistics</h2>
+    <div class="bg-white border border-gray-200 rounded-xl shadow dark:bg-gray-800 dark:border-gray-700 mt-4">
+      <!-- Clickable header -->
+      <div 
+        class="cursor-pointer p-4"
+        onclick="toggleStatisticsCard()"
+      >
+        <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">
+          Statistics
+        </h2>
+      </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <!-- Left Column: Games Played / Wins -->
-        <div class="space-y-2">
-          <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow-sm">
-            <p class="text-gray-500 dark:text-gray-200 text-sm uppercase font-semibold tracking-wide">Total Games</p>
-            <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">${stats.totalGames}</p>
-          </div>
-          <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow-sm">
-            <p class="text-gray-500 dark:text-gray-200 text-sm uppercase font-semibold tracking-wide">Us Wins</p>
-            <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">${stats.usWins}</p>
-          </div>
-          <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow-sm">
-            <p class="text-gray-500 dark:text-gray-200 text-sm uppercase font-semibold tracking-wide">Dem Wins</p>
-            <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">${stats.demWins}</p>
-          </div>
-        </div>
-
-        <!-- Right Column: Victory Methods / Average Bid -->
-        <div class="space-y-4">
-          <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow-sm">
-            <p class="text-gray-500 dark:text-gray-200 text-sm uppercase font-semibold tracking-wide">Victory Methods</p>
-            <div class="mt-2 space-y-1">
-              ${methodRows}
+      <!-- Collapsible content (starts collapsed) -->
+      <div id="statisticsContent" class="stats-content">
+        <div class="p-5">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <!-- Left Column: Games Played / Wins -->
+            <div class="space-y-2">
+              <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow-sm">
+                <p class="text-gray-500 dark:text-gray-200 text-sm uppercase font-semibold tracking-wide">
+                  Total Games
+                </p>
+                <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  ${stats.totalGames}
+                </p>
+              </div>
+              <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow-sm">
+                <p class="text-gray-500 dark:text-gray-200 text-sm uppercase font-semibold tracking-wide">
+                  Us Wins
+                </p>
+                <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  ${stats.usWins}
+                </p>
+              </div>
+              <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow-sm">
+                <p class="text-gray-500 dark:text-gray-200 text-sm uppercase font-semibold tracking-wide">
+                  Dem Wins
+                </p>
+                <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  ${stats.demWins}
+                </p>
+              </div>
             </div>
-          </div>
-          <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow-sm">
-            <p class="text-gray-500 dark:text-gray-200 text-sm uppercase font-semibold tracking-wide">Average Bid</p>
-            <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">${stats.averageBid}</p>
+
+            <!-- Right Column: Victory Methods / Average Bid -->
+            <div class="space-y-4">
+              <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow-sm">
+                <p class="text-gray-500 dark:text-gray-200 text-sm uppercase font-semibold tracking-wide">
+                  Victory Methods
+                </p>
+                <div class="mt-2 space-y-1">
+                  ${methodRows}
+                </div>
+              </div>
+              <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow-sm">
+                <p class="text-gray-500 dark:text-gray-200 text-sm uppercase font-semibold tracking-wide">
+                  Average Bid
+                </p>
+                <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  ${stats.averageBid}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1786,9 +1846,13 @@ function closeViewSavedGameModal() {
 
   // EASTER EGG
   function showEasterEgg() {
-    alert("Added Dark Mode functionality, logic improvements, and stats for version 1.2.0!");
+    alert("Added Statistics card, ability to view all bids from completed games, fixed a logic error involving a rare 360 scenario, and general bug fixes for version 1.2.1!");
   }
-
+  function toggleStatisticsCard() {
+  const statsContent = document.getElementById("statisticsContent");
+  if (!statsContent) return;
+  statsContent.classList.toggle("show");
+}
   // ----------------------------------------
   // DOM CONTENT LOADED
   // ----------------------------------------
