@@ -423,6 +423,39 @@
   </div>
 </div>
 
+<!-- Game Over Modal -->
+<div 
+  id="gameOverModal" 
+  class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4"
+  role="dialog" 
+  aria-modal="true" 
+  aria-labelledby="gameOverModalTitle"
+>
+  <div class="bg-white w-full max-w-md rounded-xl shadow-lg dark:bg-gray-800" id="gameOverModalContent">
+    <div class="p-6">
+      <h2 id="gameOverModalTitle" class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100">Game Over</h2>
+      <form id="gameOverForm" class="space-y-4">
+        <div>
+          <label for="gameOverPlayer1Name" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Player 1 (Us)</label>
+          <input type="text" id="gameOverPlayer1Name" name="gameOverPlayer1Name" required class="mt-1 block w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100" placeholder="Enter Player 1 Name">
+        </div>
+        <div>
+          <label for="gameOverPlayer2Name" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Player 2 (Dem)</label>
+          <input type="text" id="gameOverPlayer2Name" name="gameOverPlayer2Name" required class="mt-1 block w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100" placeholder="Enter Player 2 Name">
+        </div>
+        <div class="flex justify-end space-x-2">
+          <button type="button" onclick="closeGameOverModal()" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-xl hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:focus:ring-gray-500">
+            Cancel
+          </button>
+          <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-400">
+            Save
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <script>
 "use strict";
 
@@ -1611,6 +1644,44 @@ function getStatistics() {
     averageBid: Math.round((totalBids / bidCount) / 5) * 5
   };
 }
+function openGameOverModal() {
+  document.getElementById("gameOverModal").classList.remove("hidden");
+}
+
+function closeGameOverModal() {
+  document.getElementById("gameOverModal").classList.add("hidden");
+  document.getElementById("gameOverForm").reset();
+}
+
+function handleGameOverFormSubmit(e) {
+  e.preventDefault();
+  const player1Name = document.getElementById("gameOverPlayer1Name").value.trim();
+  const player2Name = document.getElementById("gameOverPlayer2Name").value.trim();
+  if (!player1Name || !player2Name) return;
+
+  const finalScore = state.rounds.length
+    ? state.rounds[state.rounds.length - 1].runningTotals
+    : { us: 0, Dem: 0 };
+  const savedGames = getLocalStorage("savedGames");
+
+  savedGames.push({
+    player1: player1Name,
+    player2: player2Name,
+    rounds: state.rounds,
+    finalScore,
+    winner: state.winner,
+    victoryMethod: state.victoryMethod,
+    timestamp: new Date().toISOString()
+  });
+
+  setLocalStorage("savedGames", savedGames);
+  localStorage.removeItem(ACTIVE_GAME_KEY);
+  ephemeralCustomBid = "";
+  ephemeralPoints = "";
+  updateState({ ...DEFAULT_STATE });
+  closeGameOverModal();
+  confettiTriggered = false;
+}
 
 function renderGameOverOverlay() {
   if (!state.gameOver) return "";
@@ -1634,8 +1705,14 @@ function renderGameOverOverlay() {
             ${winner === "us" ? "Our Team Wins!" : "Dem Team Wins!"}
           </p>
           <button
-            onclick="handleNewGame()"
+            onclick="openGameOverModal()"
             class="bg-blue-600 text-white px-6 py-3 rounded-xl shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-400"
+          >
+            Save Game
+          </button>
+          <button
+            onclick="handleNewGame()"
+            class="bg-gray-300 text-gray-700 px-6 py-3 rounded-xl shadow hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 transition dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:focus:ring-gray-500"
           >
             New Game
           </button>
@@ -1716,6 +1793,15 @@ function validatePoints(value) {
 function showEasterEgg() {
   alert("Moved statistics view into the hamburger menu, added ability to name both teams when freezing a game and general ease of use improvements in version 1.2.2!");
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  const gameOverForm = document.getElementById("gameOverForm");
+  if (gameOverForm) {
+    gameOverForm.addEventListener("submit", handleGameOverFormSubmit);
+  }
+
+  // Other existing event listeners...
+});
 
 /* Initialization */
 document.addEventListener("DOMContentLoaded", () => {
