@@ -1393,7 +1393,7 @@ function renderTeamCard(team, score, color) {
     : `bg-${color}-500 text-white`;
   return `
     <div
-      class="${baseClass} cursor-pointer hover:${baseClass} transition-colors rounded-xl shadow-md flex items-center justify-center min-w-[100px] w-32 h-32"
+      class="${baseClass} cursor-pointer hover:${baseClass} transition-colors rounded-xl shadow-md flex items-center justify-center min-w-[80px] w-32 h-32"
       onclick="handleTeamClick('${team}')"
       tabindex="0"
       role="button"
@@ -1410,7 +1410,7 @@ function renderTeamCard(team, score, color) {
 
 function renderRoundCard(roundNumber, bidInfo) {
   return `
-    <div class="bg-white rounded-xl border border-gray-200 shadow flex flex-col items-center justify-center p-4 flex-1 min-w-10 w-48 h-32 dark:bg-gray-800 dark:border-gray-700">
+    <div class="bg-white rounded-xl border border-gray-200 shadow flex flex-col items-center justify-center p-4 flex-1 min-w-[100px] w-48 h-32 dark:bg-gray-800 dark:border-gray-700">
       <div class="text-center space-y-1">
         <h2 class="text-xl font-bold text-gray-700 dark:text-gray-100">Round</h2>
         <p class="text-2xl font-extrabold text-gray-900 dark:text-gray-100">${roundNumber}</p>
