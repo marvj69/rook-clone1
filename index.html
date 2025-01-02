@@ -1393,7 +1393,7 @@ function renderTeamCard(team, score, color) {
     : `bg-${color}-500 text-white`;
   return `
     <div
-      class="${baseClass} cursor-pointer hover:${baseClass} transition-colors rounded-xl shadow-md flex items-center justify-center w-32 h-32"
+      class="${baseClass} cursor-pointer hover:${baseClass} transition-colors rounded-xl shadow-md flex items-center justify-center w-auto h-32"
       onclick="handleTeamClick('${team}')"
       tabindex="0"
       role="button"
