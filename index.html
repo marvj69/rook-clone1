@@ -1396,7 +1396,10 @@ function renderTeamCard(team, score, color) {
     <div
       class="${baseClass} cursor-pointer rounded-xl shadow-md
              flex items-center justify-center
-             flex-none shrink-0 min-w-[80px] h-32
+             flex-none shrink-0 
+             w-32 h-32            /* base mobile size */
+             sm:w-40 sm:h-40      /* size at small breakpoint (≥640px) */
+             md:w-48 md:h-48      /* size at medium breakpoint (≥768px) */
              hover:opacity-90 transition-colors"
       onclick="handleTeamClick('${team}')"
       tabindex="0"
@@ -1405,10 +1408,11 @@ function renderTeamCard(team, score, color) {
       aria-label="Select ${team === "us" ? "Our Team" : "Dem Team"}"
     >
       <div class="flex flex-col items-center">
-        <h2 class="text-lg font-semibold capitalize">
+        <!-- Example of responsive text sizes -->
+        <h2 class="text-base sm:text-lg md:text-xl font-semibold capitalize">
           ${team === "us" ? "Us" : "Dem"}
         </h2>
-        <p class="text-xl font-bold">${score}</p>
+        <p class="text-lg sm:text-xl md:text-2xl font-bold">${score}</p>
       </div>
     </div>
   `;
@@ -1418,17 +1422,20 @@ function renderRoundCard(roundNumber, bidInfo) {
   return `
     <div
       class="bg-white dark:bg-gray-800 
-             rounded-xl border border-gray-200 dark:border-gray-700 
-             shadow 
+             rounded-xl border border-gray-200 dark:border-gray-700
+             shadow
              flex flex-col items-center justify-center
-             flex-none shrink-0 min-w-[80px] h-32
+             flex-none shrink-0
+             w-32 h-32
+             sm:w-40 sm:h-40
+             md:w-48 md:h-48
              p-4 space-y-2"
     >
       <div class="text-center space-y-1">
-        <h2 class="text-lg font-bold text-gray-700 dark:text-gray-100">
+        <h2 class="text-base sm:text-lg md:text-xl font-bold text-gray-700 dark:text-gray-100">
           Round
         </h2>
-        <p class="text-xl font-extrabold text-gray-900 dark:text-gray-100">
+        <p class="text-lg sm:text-xl md:text-2xl font-extrabold text-gray-900 dark:text-gray-100">
           ${roundNumber}
         </p>
         ${bidInfo}
