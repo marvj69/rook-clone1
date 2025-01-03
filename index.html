@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Rook - Game Scoring Screen</title>
   <link rel="manifest" href="manifest.json"/>
   <meta name="theme-color" content="#ffffff"/>
@@ -191,9 +191,35 @@
     .modal.hidden {
       display: none
     }
+    /* New CSS for flex layout */
+    .card-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+      padding: 1rem;
+    }
+    .card {
+      flex: 1 1 calc(33.333% - 1rem);
+      max-width: calc(33.333% - 1rem);
+      min-width: 200px;
+    }
+    @media (max-width: 768px) {
+      .card {
+        flex: 1 1 calc(50% - 1rem);
+        max-width: calc(50% - 1rem);
+      }
+    }
+    @media (max-width: 480px) {
+      .card {
+        flex: 1 1 100%;
+        max-width: 100%;
+      }
+    }
   </style>
 </head>
-<body class="bg-white text-gray-800 min-h-screen transition-colors duration-300 dark:bg-gray-900 dark:text-gray-100">
+<body class="bg-navy-900 text-gray-100 min-h-screen transition-colors duration-300 dark:bg-gray-900 dark:text-gray-100">
+
 <div class="hamburger-menu" onclick="toggleMenu(event)" aria-label="Open Menu" role="button" tabindex="0" id="hamburgerIcon">
   <div class="bar"></div>
   <div class="bar"></div>
@@ -218,11 +244,11 @@
 
 <div id="menuOverlay" class="menu-overlay" onclick="closeMenuOverlay()" aria-hidden="true"></div>
 
-<div class="absolute top-0 right-0 m-4 p-2 text-gray-800 font-medium text-xs bg-white bg-opacity-70 rounded-full shadow px-3 py-1 dark:bg-gray-800 dark:text-gray-100" style="cursor:pointer" onclick="showEasterEgg()">
+<div class="absolute top-0 right-0 m-4 p-2 text-gray-100 font-medium text-xs bg-navy-800 bg-opacity-70 rounded-full shadow px-3 py-1 dark:bg-gray-800 dark:text-gray-100" style="cursor:pointer" onclick="showEasterEgg()">
   <p>version 1.2.2</p>
 </div>
 
-<div id="app" class="max-w-4xl mx-auto p-4 sm:p-6 space-y-6"></div>
+<div id="app" class="max-w-4xl mx-auto p-4 sm:p-6 space-y-1"></div>
 
 <div id="saveIndicator" class="hidden">Saved</div>
 
@@ -235,22 +261,22 @@
   aria-labelledby="savedGamesTitle"
 >
   <!-- Modal Content -->
-  <div class="bg-white w-full max-w-4xl rounded-xl shadow-lg overflow-y-auto max-h-full dark:bg-gray-800" id="savedGamesModalContent">
-    <div class="flex justify-between items-center p-5 border-b border-gray-200 dark:border-gray-700">
-      <h3 id="savedGamesTitle" class="text-2xl font-semibold text-gray-800 dark:text-gray-100">Saved Games</h3>
-      <button id="closeSavedGamesModalBtn" class="text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-gray-300 dark:hover:text-gray-100" aria-label="Close Saved Games Modal">
+  <div class="bg-navy-800 w-full max-w-4xl rounded-xl shadow-lg overflow-y-auto max-h-full dark:bg-gray-800" id="savedGamesModalContent">
+    <div class="flex justify-between items-center p-5 border-b border-gray-700 dark:border-gray-700">
+      <h3 id="savedGamesTitle" class="text-2xl font-semibold text-gray-100 dark:text-gray-100">Saved Games</h3>
+      <button id="closeSavedGamesModalBtn" class="text-gray-300 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-gray-300 dark:hover:text-gray-100" aria-label="Close Saved Games Modal">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
         </svg>
       </button>
     </div>
     <div class="p-5 space-y-6">
-      <div class="rounded-xl shadow-sm p-4 bg-gray-50 dark:bg-gray-700">
-        <h4 class="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100">Completed Games</h4>
+      <div class="rounded-xl shadow-sm p-4 bg-navy-700 dark:bg-gray-700">
+        <h4 class="text-xl font-bold mb-4 text-gray-100 dark:text-gray-100">Completed Games</h4>
         <div id="savedGamesList" class="space-y-4"></div>
       </div>
-      <div class="rounded-xl shadow-sm p-4 bg-gray-50 dark:bg-gray-700">
-        <h4 class="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100">Freezer Games</h4>
+      <div class="rounded-xl shadow-sm p-4 bg-navy-700 dark:bg-gray-700">
+        <h4 class="text-xl font-bold mb-4 text-gray-100 dark:text-gray-100">Freezer Games</h4>
         <div id="freezerGamesList" class="space-y-4"></div>
       </div>
     </div>
@@ -265,20 +291,20 @@
   aria-modal="true" 
   aria-labelledby="saveGameModalTitle"
 >
-  <div class="bg-white w-full max-w-md rounded-xl shadow-lg dark:bg-gray-800" id="saveGameModalContent">
+  <div class="bg-navy-800 w-full max-w-md rounded-xl shadow-lg dark:bg-gray-800" id="saveGameModalContent">
     <div class="p-6">
-      <h2 id="saveGameModalTitle" class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100">Save Game</h2>
+      <h2 id="saveGameModalTitle" class="text-2xl font-bold mb-4 text-gray-100 dark:text-gray-100">Save Game</h2>
       <form id="saveGameForm" class="space-y-4">
         <div>
-          <label for="player1Name" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Player 1 (Us)</label>
-          <input type="text" id="player1Name" name="player1Name" required class="mt-1 block w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100" placeholder="Enter Player 1 Name">
+          <label for="player1Name" class="block text-sm font-medium text-gray-300 dark:text-gray-200">Player 1 (Us)</label>
+          <input type="text" id="player1Name" name="player1Name" required class="mt-1 block w-full border border-gray-600 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100" placeholder="Enter Player 1 Name">
         </div>
         <div>
-          <label for="player2Name" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Player 2 (Dem)</label>
-          <input type="text" id="player2Name" name="player2Name" required class="mt-1 block w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100" placeholder="Enter Player 2 Name">
+          <label for="player2Name" class="block text-sm font-medium text-gray-300 dark:text-gray-200">Player 2 (Dem)</label>
+          <input type="text" id="player2Name" name="player2Name" required class="mt-1 block w-full border border-gray-600 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100" placeholder="Enter Player 2 Name">
         </div>
         <div class="flex justify-end space-x-2">
-          <button type="button" onclick="closeSaveGameModal()" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-xl hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:focus:ring-gray-500">
+          <button type="button" onclick="closeSaveGameModal()" class="bg-gray-600 text-gray-100 px-4 py-2 rounded-xl hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:focus:ring-gray-500">
             Cancel
           </button>
           <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-400">
@@ -298,20 +324,20 @@
   aria-modal="true" 
   aria-labelledby="freezeGameModalTitle"
 >
-  <div class="bg-white w-full max-w-md rounded-xl shadow-lg dark:bg-gray-800" id="freezeGameModalContent">
+  <div class="bg-navy-800 w-full max-w-md rounded-xl shadow-lg dark:bg-gray-800" id="freezeGameModalContent">
     <div class="p-6">
-      <h2 id="freezeGameModalTitle" class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100">Freeze Game</h2>
+      <h2 id="freezeGameModalTitle" class="text-2xl font-bold mb-4 text-gray-100 dark:text-gray-100">Freeze Game</h2>
       <form id="freezeGameForm" class="space-y-4">
         <div>
-          <label for="freezePlayer1Name" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Player 1 (Us)</label>
-          <input type="text" id="freezePlayer1Name" name="freezePlayer1Name" required class="mt-1 block w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100" placeholder="Enter Player 1 Name for Freeze">
+          <label for="freezePlayer1Name" class="block text-sm font-medium text-gray-300 dark:text-gray-200">Player 1 (Us)</label>
+          <input type="text" id="freezePlayer1Name" name="freezePlayer1Name" required class="mt-1 block w-full border border-gray-600 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100" placeholder="Enter Player 1 Name for Freeze">
         </div>
         <div>
-          <label for="freezePlayer2Name" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Player 2 (Dem)</label>
-          <input type="text" id="freezePlayer2Name" name="freezePlayer2Name" required class="mt-1 block w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100" placeholder="Enter Player 2 Name for Freeze">
+          <label for="freezePlayer2Name" class="block text-sm font-medium text-gray-300 dark:text-gray-200">Player 2 (Dem)</label>
+          <input type="text" id="freezePlayer2Name" name="freezePlayer2Name" required class="mt-1 block w-full border border-gray-600 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100" placeholder="Enter Player 2 Name for Freeze">
         </div>
         <div class="flex justify-end space-x-2">
-          <button type="button" onclick="closeFreezeGameModal()" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-xl hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:focus:ring-gray-500">
+          <button type="button" onclick="closeFreezeGameModal()" class="bg-gray-600 text-gray-100 px-4 py-2 rounded-xl hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:focus:ring-gray-500">
             Cancel
           </button>
           <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-400">
@@ -331,14 +357,14 @@
   aria-modal="true" 
   aria-labelledby="confirmationModalTitle"
 >
-  <div class="bg-white w-full max-w-md rounded-xl shadow-lg dark:bg-gray-800" id="confirmationModalContent">
+  <div class="bg-navy-800 w-full max-w-md rounded-xl shadow-lg dark:bg-gray-800" id="confirmationModalContent">
     <div class="p-6">
-      <h2 id="confirmationModalTitle" class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100">Confirm Action</h2>
-      <p id="confirmationModalMessage" class="text-gray-700 dark:text-gray-300 mb-6">
+      <h2 id="confirmationModalTitle" class="text-2xl font-bold mb-4 text-gray-100 dark:text-gray-100">Confirm Action</h2>
+      <p id="confirmationModalMessage" class="text-gray-300 dark:text-gray-300 mb-6">
         Starting a new game will clear current game progress, are you sure you want to continue?
       </p>
       <div class="flex justify-end space-x-2">
-        <button type="button" id="noModalButton" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-xl hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:focus:ring-gray-500">
+        <button type="button" id="noModalButton" class="bg-gray-600 text-gray-100 px-4 py-2 rounded-xl hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:focus:ring-gray-500">
           No
         </button>
         <button type="button" id="confirmModalButton" class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-400">
@@ -357,10 +383,10 @@
   aria-modal="true" 
   aria-labelledby="viewSavedGameTitle"
 >
-  <div class="bg-white w-full max-w-4xl rounded-xl shadow-lg overflow-y-auto max-h-full dark:bg-gray-800" id="viewSavedGameModalContent">
-    <div class="flex justify-between items-center p-5 border-b border-gray-200 dark:border-gray-700">
-      <h3 id="viewSavedGameTitle" class="text-2xl font-semibold text-gray-800 dark:text-gray-100">Game Details</h3>
-      <button id="closeViewSavedGameModalBtn" class="text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-gray-300 dark:hover:text-gray-100" aria-label="Close View Saved Game Modal">
+  <div class="bg-navy-800 w-full max-w-4xl rounded-xl shadow-lg overflow-y-auto max-h-full dark:bg-gray-800" id="viewSavedGameModalContent">
+    <div class="flex justify-between items-center p-5 border-b border-gray-700 dark:border-gray-700">
+      <h3 id="viewSavedGameTitle" class="text-2xl font-semibold text-gray-100 dark:text-gray-100">Game Details</h3>
+      <button id="closeViewSavedGameModalBtn" class="text-gray-300 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-gray-300 dark:hover:text-gray-100" aria-label="Close View Saved Game Modal">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
         </svg>
@@ -378,21 +404,21 @@
   aria-modal="true" 
   aria-labelledby="aboutModalTitle"
 >
-  <div class="bg-white w-full max-w-md rounded-xl shadow-lg dark:bg-gray-800" id="aboutModalContent">
+  <div class="bg-navy-800 w-full max-w-md rounded-xl shadow-lg dark:bg-gray-800" id="aboutModalContent">
     <div class="p-6">
-      <h2 id="aboutModalTitle" class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100">About Rook Game Scoring</h2>
-      <p class="text-gray-700 dark:text-gray-300 mb-4">
+      <h2 id="aboutModalTitle" class="text-2xl font-bold mb-4 text-gray-100 dark:text-gray-100">About Rook Game Scoring</h2>
+      <p class="text-gray-300 dark:text-gray-300 mb-4">
         <strong>How to Use</strong>: Tap a team to begin bidding, enter the bid and the points, then press "Submit." Keep track of all round scores in the “History” section. You can also freeze a current game, view saved games, or start a new game from the menu.
       </p>
-      <p class="text-gray-700 dark:text-gray-300 mb-4">
+      <p class="text-gray-300 dark:text-gray-300 mb-4">
         <strong>Current Version</strong>: 1.2.2.1
       </p>
-      <p class="text-gray-700 dark:text-gray-300 mb-6">
+      <p class="text-gray-300 dark:text-gray-300 mb-6">
         Explore the statistics section to see overall wins, average bids, and more!
       </p>
-      <p class="text-gray-700 dark:text-gray-300 mb-6">Author: Marv Heinonen</p>
+      <p class="text-gray-300 dark:text-gray-300 mb-6">Author: Marv Heinonen</p>
       <div class="flex justify-end space-x-2">
-        <button type="button" onclick="closeAboutModal()" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-xl hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:focus:ring-gray-500">
+        <button type="button" onclick="closeAboutModal()" class="bg-gray-600 text-gray-100 px-4 py-2 rounded-xl hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:focus:ring-gray-500">
           Close
         </button>
       </div>
@@ -408,14 +434,14 @@
   aria-modal="true" 
   aria-labelledby="statisticsModalTitle"
 >
-  <div class="bg-white w-full max-w-md rounded-xl shadow-lg dark:bg-gray-800" id="statisticsModalContentWrapper">
+  <div class="bg-navy-800 w-full max-w-md rounded-xl shadow-lg dark:bg-gray-800" id="statisticsModalContentWrapper">
     <div class="p-6">
-      <h2 id="statisticsModalTitle" class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100">Statistics</h2>
-      <div id="statisticsModalContent" class="text-gray-700 dark:text-gray-300">
+      <h2 id="statisticsModalTitle" class="text-2xl font-bold mb-4 text-gray-100 dark:text-gray-100">Statistics</h2>
+      <div id="statisticsModalContent" class="text-gray-300 dark:text-gray-300">
         <p>Loading statistics...</p>
       </div>
       <div class="flex justify-end space-x-2">
-        <button type="button" onclick="closeStatisticsModal()" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-xl hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:focus:ring-gray-500">
+        <button type="button" onclick="closeStatisticsModal()" class="bg-gray-600 text-gray-100 px-4 py-2 rounded-xl hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:focus:ring-gray-500">
           Close
         </button>
       </div>
@@ -431,20 +457,20 @@
   aria-modal="true" 
   aria-labelledby="gameOverModalTitle"
 >
-  <div class="bg-white w-full max-w-md rounded-xl shadow-lg dark:bg-gray-800" id="gameOverModalContent">
+  <div class="bg-navy-800 w-full max-w-md rounded-xl shadow-lg dark:bg-gray-800" id="gameOverModalContent">
     <div class="p-6">
-      <h2 id="gameOverModalTitle" class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100">Game Over</h2>
+      <h2 id="gameOverModalTitle" class="text-2xl font-bold mb-4 text-gray-100 dark:text-gray-100">Game Over</h2>
       <form id="gameOverForm" class="space-y-4">
         <div>
-          <label for="gameOverPlayer1Name" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Player 1 (Us)</label>
-          <input type="text" id="gameOverPlayer1Name" name="gameOverPlayer1Name" required class="mt-1 block w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100" placeholder="Enter Player 1 Name">
+          <label for="gameOverPlayer1Name" class="block text-sm font-medium text-gray-300 dark:text-gray-200">Player 1 (Us)</label>
+          <input type="text" id="gameOverPlayer1Name" name="gameOverPlayer1Name" required class="mt-1 block w-full border border-gray-600 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100" placeholder="Enter Player 1 Name">
         </div>
         <div>
-          <label for="gameOverPlayer2Name" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Player 2 (Dem)</label>
-          <input type="text" id="gameOverPlayer2Name" name="gameOverPlayer2Name" required class="mt-1 block w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100" placeholder="Enter Player 2 Name">
+          <label for="gameOverPlayer2Name" class="block text-sm font-medium text-gray-300 dark:text-gray-200">Player 2 (Dem)</label>
+          <input type="text" id="gameOverPlayer2Name" name="gameOverPlayer2Name" required class="mt-1 block w-full border border-gray-600 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100" placeholder="Enter Player 2 Name">
         </div>
         <div class="flex justify-end space-x-2">
-          <button type="button" onclick="closeGameOverModal()" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-xl hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:focus:ring-gray-500">
+          <button type="button" onclick="closeGameOverModal()" class="bg-gray-600 text-gray-100 px-4 py-2 rounded-xl hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:focus:ring-gray-500">
             Cancel
           </button>
           <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-400">
@@ -1386,64 +1412,27 @@ function deleteFreezerGame(index) {
 }
 
 /* Render functions */
-function renderTeamCard(team, score, color) {
-  const isActive = state.biddingTeam === team;
-  const baseClass = isActive
-    ? `bg-${color}-900 text-white`
-    : `bg-${color}-500 text-white`;
+function renderTeamCard(e,t,a){const r=state.biddingTeam===e,n=r?`bg-${a}-900 text-white`:`bg-${a}-500 text-white`;return`
+            <div class="${n} cursor-pointer
+             hover:${n} transition-colors rounded-xl
+              shadow-md flex flex-auto items-center justify-center  h-32"
+               onclick="handleTeamClick('${e}')" tabindex="0" 
+               role="button" aria-pressed="${r}" aria-label="Select ${"us"===e?"Our Team":"Dem Team"}">
+               <div class="flex flex-col items-center"><h2 class="text-xl font-semibold capitalize">
+                ${"us"===e?"Us":"Dem"}</h2><p class="text-2xl font-bold">${t}</p></div></div>`}
 
-  return `
-    <div
-      class="${baseClass} cursor-pointer rounded-xl shadow-md
-             flex items-center justify-center
-             flex-none shrink-0 
-             w-16 h-32            /* base mobile size */
-             sm:w-32 sm:h-32      /* size at small breakpoint (≥640px) */
-             md:w-40 md:h-32      /* size at medium breakpoint (≥768px) */
-             lg:w-48 lg:h-32      /* size at large breakpoint (≥1024px) */
-             hover:opacity-90 transition-colors"
-      onclick="handleTeamClick('${team}')"
-      tabindex="0"
-      role="button"
-      aria-pressed="${isActive}"
-      aria-label="Select ${team === "us" ? "Our Team" : "Dem Team"}"
-    >
-      <div class="flex flex-col items-center">
-        <h2 class="text-base sm:text-lg md:text-xl font-semibold capitalize">
-          ${team === "us" ? "Us" : "Dem"}
-        </h2>
-        <p class="text-lg sm:text-xl md:text-2xl font-bold">${score}</p>
-      </div>
-    </div>
-  `;
-}
 
-function renderRoundCard(roundNumber, bidInfo) {
-  return `
-    <div
-      class="bg-white dark:bg-gray-800 
-             rounded-xl border border-gray-200 dark:border-gray-700
-             shadow
-             flex flex-col items-center justify-center
-             flex-none shrink-0
-             w-24 h-32
-             sm:w-32 sm:h-32
-             md:w-40 md:h-32
-             lg:w-48 lg:h-32
-             p-4 space-y-2"
-    >
-      <div class="text-center space-y-1">
-        <h2 class="text-base sm:text-lg md:text-xl font-bold text-gray-700 dark:text-gray-100">
-          Round
-        </h2>
-        <p class="text-lg sm:text-xl md:text-2xl font-extrabold text-gray-900 dark:text-gray-100">
-          ${roundNumber}
-        </p>
-        ${bidInfo}
-      </div>
-    </div>
-  `;
-}
+                function renderRoundCard(e,t){return`
+                    <div class="bg-white rounded-xl border border-gray-200 
+                    shadow flex flex-auto items-center justify-center p-4 
+                    flex-1 min-w-0  h-32 dark:bg-gray-800 dark:border-gray-700">
+                    <div class="text-center space-y-1"><h2 class="text-xl font-bold 
+                        text-gray-700 dark:text-gray-100">Round</h2><p class="text-2xl 
+                        font-extrabold text-gray-900 dark:text-gray-100">${e}</p>${t}</div></div>`}
+                        function renderErrorAlert(e){return`<div role="alert" class="flex items-center 
+                        border border-red-400 rounded-xl p-4 bg-red-50 text-red-700 space-x-3 dark:bg-red-700 
+                        dark:border-red-600 dark:text-red-100"><div class="flex-shrink-0">${Icons.AlertCircle}
+                            </div><div class="flex-1">${e}</div></div>`}
 
 function renderErrorAlert(errorMessage) {
   return `
@@ -1592,7 +1581,7 @@ function renderHistoryCard() {
   const { rounds } = state;
   return `
     <div class="bg-white border border-gray-200 rounded-xl shadow dark:bg-gray-800 dark:border-gray-700">
-      <div class="border-b border-gray-200 p-4 dark:border-gray-700">
+      <div class="border-b border-gray-200 p-2 dark:border-gray-700">
         <h2 class="text-lg font-bold text-gray-800 dark:text-gray-100">History</h2>
         <div class="grid grid-cols-3 gap-2 pt-3 font-medium text-gray-600 dark:text-gray-300 text-sm sm:text-base">
           <div class="text-left">Us</div>
@@ -1777,7 +1766,7 @@ function renderApp() {
       </div>
       <p class="text-md sm:text-lg text-gray-600 dark:text-gray-300">Tap a team to start a bid!</p>
     </div>
-    <div class="flex flex-row flex-wrap justify-center gap-4 p-4">
+    <div class="card-container">
       ${renderTeamCard("us", currentTotals.us, "blue")}
       ${renderRoundCard(currentRound, bidInfo)}
       ${renderTeamCard("Dem", currentTotals.Dem, "red")}
