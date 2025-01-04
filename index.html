@@ -1,1868 +1,209 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Rook - Game Scoring Screen</title>
-  <link rel="manifest" href="manifest.json"/>
-  <meta name="theme-color" content="#ffffff"/>
-  <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
-  <link rel="icon" href="icons/icon-192x192.png"/>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config = { darkMode: "class" }</script>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-  <style>
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(-10px)
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0)
-      }
-    }
-    .animate-fade-in {
-      animation: fadeIn 0.5s ease-out
-    }
-    .score-input-container {
-      overflow: hidden;
-      max-height: 0;
-      opacity: 0;
-      transform: translateY(-10px);
-      transition: all 0.4s ease-in-out
-    }
-    .score-input-container.show {
-      max-height: 1000px;
-      opacity: 1;
-      transform: translateY(0)
-    }
-    .stats-content {
-      overflow: hidden;
-      max-height: 0;
-      transition: all 0.4s ease-in-out;
-      border-top: none
-    }
-    .stats-content.show {
-      max-height: 1000px
-    }
-    .focus-outline:focus {
-      outline: 2px dashed #3182ce;
-      outline-offset: 2px
-    }
-    .no-scrollbar::-webkit-scrollbar {
-      display: none
-    }
-    .no-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none
-    }
-    #saveIndicator {
-      position: fixed;
-      bottom: 1rem;
-      right: 1rem;
-      background-color: rgba(16,185,129,0.7);
-      color: #fff;
-      padding: 0.5rem 1rem;
-      border-radius: 0.375rem;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      opacity: 0;
-      transition: opacity 0.3s ease-in-out;
-      pointer-events: none;
-      z-index: 1000;
-      font-size: 0.875rem
-    }
-    #saveIndicator.show {
-      opacity: 1
-    }
-    .hamburger-menu {
-      display: flex;
-      flex-direction: column;
-      cursor: pointer;
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      z-index: 1100;
-      transition: all 0.3s ease
-    }
-    .bar {
-      width: 30px;
-      height: 4px;
-      background-color: #333;
-      margin: 5px 0;
-      transition: all 0.3s
-    }
-    html.dark .bar {
-      background-color: #fff
-    }
-    .hamburger-menu.open .bar:nth-child(1) {
-      transform: rotate(45deg) translate(10px,10px)
-    }
-    .hamburger-menu.open .bar:nth-child(2) {
-      opacity: 0
-    }
-    .hamburger-menu.open .bar:nth-child(3) {
-      transform: rotate(-45deg) translate(10px,-10px)
-    }
-    nav {
-      position: fixed;
-      top: 0;
-      left: -300px;
-      width: 250px;
-      height: 100%;
-      background-color: #fff;
-      z-index: 1200;
-      transition: left 0.3s ease;
-      box-shadow: 2px 0 5px rgba(0,0,0,0.1)
-    }
-    nav.show {
-      left: 0
-    }
-    html.dark nav {
-      background-color: #2d3748
-    }
-    nav ul {
-      list-style-type: none;
-      padding: 0;
-      margin: 0;
-      margin-top: 60px
-    }
-    nav ul li {
-      margin: 0;
-      border-bottom: 1px solid #e0e0e0
-    }
-    nav ul li:last-child {
-      border-bottom: none
-    }
-    nav ul li a,
-    nav ul li button {
-      color: #333;
-      text-decoration: none;
-      font-size: 20px;
-      padding: 15px 20px;
-      display: block;
-      transition: background-color 0.3s ease;
-      width: 100%;
-      text-align: left;
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-family: inherit
-    }
-    nav ul li a:hover,
-    nav ul li button:hover {
-      background-color: #f5f5f5
-    }
-    html.dark nav ul li a,
-    html.dark nav ul li button {
-      color: #fff
-    }
-    html.dark nav ul li a:hover,
-    html.dark nav ul li button:hover {
-      background-color: #4a5568
-    }
-    .close-menu {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      color: #333;
-      font-size: 30px;
-      cursor: pointer
-    }
-    html.dark .close-menu {
-      color: #fff
-    }
-    .menu-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0,0,0,0.5);
-      z-index: 1150;
-      display: none
-    }
-    .menu-overlay.show {
-      display: block
-    }
-    .modal {
-      transition: opacity 0.25s ease
-    }
-    .modal.hidden {
-      display: none
-    }
-    /* New CSS for flex layout */
-    .card-container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 1rem;
-      padding: 1rem;
-    }
-    .card {
-      flex: 1 1 calc(33.333% - 1rem);
-      max-width: calc(33.333% - 1rem);
-      min-width: 200px;
-    }
-    @media (max-width: 768px) {
-      .card {
-        flex: 1 1 calc(50% - 1rem);
-        max-width: calc(50% - 1rem);
-      }
-    }
-    @media (max-width: 480px) {
-      .card {
-        flex: 1 1 100%;
-        max-width: 100%;
-      }
-    }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Rook - Game Scoring Screen</title>
+<link rel="manifest" href="manifest.json"/>
+<meta name="theme-color" content="#ffffff"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<link rel="icon" href="icons/icon-192x192.png"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={darkMode:"class"};</script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+<style>
+@keyframes fadeIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+.animate-fade-in{animation:fadeIn .5s ease-out}
+.score-input-container{overflow:hidden;max-height:0;opacity:0;transform:translateY(-10px);transition:all .4s ease-in-out}
+.score-input-container.show{max-height:1000px;opacity:1;transform:translateY(0)}
+.stats-content{overflow:hidden;max-height:0;transition:all .4s ease-in-out;border-top:none}
+.stats-content.show{max-height:1000px}
+.focus-outline:focus{outline:2px dashed #3182ce;outline-offset:2px}
+.no-scrollbar::-webkit-scrollbar{display:none}
+.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}
+#saveIndicator{position:fixed;bottom:1rem;right:1rem;background-color:rgba(16,185,129,.7);color:#fff;padding:.5rem 1rem;border-radius:.375rem;box-shadow:0 2px 4px rgba(0,0,0,.1);opacity:0;transition:opacity .3s ease-in-out;pointer-events:none;z-index:1000;font-size:.875rem}
+#saveIndicator.show{opacity:1}
+.hamburger-menu{display:flex;flex-direction:column;cursor:pointer;position:fixed;top:20px;left:20px;z-index:1100;transition:all .3s ease}
+.bar{width:30px;height:4px;background-color:#333;margin:5px 0;transition:all .3s}
+html.dark .bar{background-color:#fff}
+.hamburger-menu.open .bar:nth-child(1){transform:rotate(45deg) translate(10px,10px)}
+.hamburger-menu.open .bar:nth-child(2){opacity:0}
+.hamburger-menu.open .bar:nth-child(3){transform:rotate(-45deg) translate(10px,-10px)}
+nav{position:fixed;top:0;left:-300px;width:250px;height:100%;background-color:#fff;z-index:1200;transition:left .3s ease;box-shadow:2px 0 5px rgba(0,0,0,.1)}
+nav.show{left:0}
+html.dark nav{background-color:#2d3748}
+nav ul{list-style-type:none;padding:0;margin:0;margin-top:60px}
+nav ul li{margin:0;border-bottom:1px solid #e0e0e0}
+nav ul li:last-child{border-bottom:none}
+nav ul li a,nav ul li button{color:#333;text-decoration:none;font-size:20px;padding:15px 20px;display:block;transition:background-color .3s ease;width:100%;text-align:left;background:none;border:none;cursor:pointer;font-family:inherit}
+nav ul li a:hover,nav ul li button:hover{background-color:#f5f5f5}
+html.dark nav ul li a,html.dark nav ul li button{color:#fff}
+html.dark nav ul li a:hover,html.dark nav ul li button:hover{background-color:#4a5568}
+.close-menu{position:absolute;top:20px;right:20px;color:#333;font-size:30px;cursor:pointer}
+html.dark .close-menu{color:#fff}
+.menu-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background-color:rgba(0,0,0,.5);z-index:1150;display:none}
+.menu-overlay.show{display:block}
+.modal{transition:opacity .25s ease}
+.modal.hidden{display:none}
+</style>
 </head>
-<body class="bg-navy-900 text-gray-100 min-h-screen transition-colors duration-300 dark:bg-gray-900 dark:text-gray-100">
-
+<body class="bg-white text-gray-800 min-h-screen transition-colors duration-300 dark:bg-gray-900 dark:text-gray-100">
 <div class="hamburger-menu" onclick="toggleMenu(event)" aria-label="Open Menu" role="button" tabindex="0" id="hamburgerIcon">
-  <div class="bar"></div>
-  <div class="bar"></div>
-  <div class="bar"></div>
+<div class="bar"></div><div class="bar"></div><div class="bar"></div>
 </div>
-
 <nav id="menu">
-  <ul>
-    <li><a href="#" onclick="openSavedGamesModal();toggleMenu(event)">View Saved Games</a></li>
-    <li><a href="#" onclick="handleNewGame();toggleMenu(event)">New Game</a></li>
-    <li><a href="#" onclick="handleFreezerGame();toggleMenu(event)">Freeze Game</a></li>
-    <li>
-      <button id="darkModeToggle" onclick="toggleDarkMode(event)" class="flex items-center focus:outline-none">
-        <span id="darkModeLabel" class="mr-2">Dark Mode</span>
-        <span id="darkModeIcon" class="ml-2"></span>
-      </button>
-    </li>
-    <li><a href="#" onclick="openAboutModal();toggleMenu(event)">About</a></li>
-    <li><a href="#" onclick="openStatisticsModal();toggleMenu(event)">Statistics</a></li>
-  </ul>
+<ul>
+<li><a href="#" onclick="openSavedGamesModal();toggleMenu(event)">View Saved Games</a></li>
+<li><a href="#" onclick="handleNewGame();toggleMenu(event)">New Game</a></li>
+<li><a href="#" onclick="handleFreezerGame();toggleMenu(event)">Freeze Game</a></li>
+<li><a href="#" onclick="openAboutModal();toggleMenu(event)">About</a></li>
+<li><a href="#" onclick="openStatisticsModal();toggleMenu(event)">Statistics</a></li>
+<li>
+<button id="darkModeToggle" onclick="toggleDarkMode(event)" class="flex items-center focus:outline-none">
+<span id="darkModeIcon"></span>
+<span id="darkModeLabel" class="ml-2">Dark Mode</span>
+</button>
+</li>
+</ul>
 </nav>
-
 <div id="menuOverlay" class="menu-overlay" onclick="closeMenuOverlay()" aria-hidden="true"></div>
-
-<div class="absolute top-0 right-0 m-4 p-2 text-gray-100 font-medium text-xs bg-navy-800 bg-opacity-70 rounded-full shadow px-3 py-1 dark:bg-gray-800 dark:text-gray-100" style="cursor:pointer" onclick="showEasterEgg()">
-  <p>version 1.2.2</p>
+<div class="absolute top-0 right-0 m-4 p-2 text-gray-800 font-medium text-xs bg-white bg-opacity-70 rounded shadow px-3 py-1 dark:bg-gray-800 dark:text-gray-100" style="cursor:pointer" onclick="showVersionNum()">
+<p>Version 1.2.3</p>
 </div>
-
-<div id="app" class="max-w-4xl mx-auto p-4 sm:p-6 space-y-1"></div>
-
+<div id="app" class="max-w-4xl mx-auto p-4 sm:p-6 space-y-6"></div>
 <div id="saveIndicator" class="hidden">Saved</div>
-
-<!-- Saved Games Modal -->
-<div 
-  id="savedGamesModal" 
-  class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4"
-  role="dialog" 
-  aria-modal="true" 
-  aria-labelledby="savedGamesTitle"
->
-  <!-- Modal Content -->
-  <div class="bg-navy-800 w-full max-w-4xl rounded-xl shadow-lg overflow-y-auto max-h-full dark:bg-gray-800" id="savedGamesModalContent">
-    <div class="flex justify-between items-center p-5 border-b border-gray-700 dark:border-gray-700">
-      <h3 id="savedGamesTitle" class="text-2xl font-semibold text-gray-100 dark:text-gray-100">Saved Games</h3>
-      <button id="closeSavedGamesModalBtn" class="text-gray-300 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-gray-300 dark:hover:text-gray-100" aria-label="Close Saved Games Modal">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-        </svg>
-      </button>
-    </div>
-    <div class="p-5 space-y-6">
-      <div class="rounded-xl shadow-sm p-4 bg-navy-700 dark:bg-gray-700">
-        <h4 class="text-xl font-bold mb-4 text-gray-100 dark:text-gray-100">Completed Games</h4>
-        <div id="savedGamesList" class="space-y-4"></div>
-      </div>
-      <div class="rounded-xl shadow-sm p-4 bg-navy-700 dark:bg-gray-700">
-        <h4 class="text-xl font-bold mb-4 text-gray-100 dark:text-gray-100">Freezer Games</h4>
-        <div id="freezerGamesList" class="space-y-4"></div>
-      </div>
-    </div>
-  </div>
+<div id="savedGamesModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="savedGamesTitle">
+<div class="bg-white w-full max-w-4xl rounded-xl shadow-lg overflow-y-auto max-h-full dark:bg-gray-800">
+<div class="flex justify-between items-center p-5 border-b border-gray-200 dark:border-gray-700">
+<h3 id="savedGamesTitle" class="text-2xl font-semibold text-gray-800 dark:text-gray-100">Saved Games</h3>
+<button id="closeSavedGamesModalBtn" class="text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-gray-300 dark:hover:text-gray-100" aria-label="Close Saved Games Modal">
+<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+</svg>
+</button>
 </div>
-
-<!-- Save Game Modal -->
-<div 
-  id="saveGameModal" 
-  class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4"
-  role="dialog" 
-  aria-modal="true" 
-  aria-labelledby="saveGameModalTitle"
->
-  <div class="bg-navy-800 w-full max-w-md rounded-xl shadow-lg dark:bg-gray-800" id="saveGameModalContent">
-    <div class="p-6">
-      <h2 id="saveGameModalTitle" class="text-2xl font-bold mb-4 text-gray-100 dark:text-gray-100">Save Game</h2>
-      <form id="saveGameForm" class="space-y-4">
-        <div>
-          <label for="player1Name" class="block text-sm font-medium text-gray-300 dark:text-gray-200">Player 1 (Us)</label>
-          <input type="text" id="player1Name" name="player1Name" required class="mt-1 block w-full border border-gray-600 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100" placeholder="Enter Player 1 Name">
-        </div>
-        <div>
-          <label for="player2Name" class="block text-sm font-medium text-gray-300 dark:text-gray-200">Player 2 (Dem)</label>
-          <input type="text" id="player2Name" name="player2Name" required class="mt-1 block w-full border border-gray-600 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100" placeholder="Enter Player 2 Name">
-        </div>
-        <div class="flex justify-end space-x-2">
-          <button type="button" onclick="closeSaveGameModal()" class="bg-gray-600 text-gray-100 px-4 py-2 rounded-xl hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:focus:ring-gray-500">
-            Cancel
-          </button>
-          <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-400">
-            Save
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
+<div class="p-5 space-y-6">
+<div class="rounded-xl shadow-sm p-4 bg-gray-50 dark:bg-gray-700">
+<h4 class="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100">Completed Games</h4>
+<div id="savedGamesList" class="space-y-4"></div>
 </div>
-
-<!-- Freeze Game Modal (updated to accept two names) -->
-<div 
-  id="freezeGameModal" 
-  class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4"
-  role="dialog" 
-  aria-modal="true" 
-  aria-labelledby="freezeGameModalTitle"
->
-  <div class="bg-navy-800 w-full max-w-md rounded-xl shadow-lg dark:bg-gray-800" id="freezeGameModalContent">
-    <div class="p-6">
-      <h2 id="freezeGameModalTitle" class="text-2xl font-bold mb-4 text-gray-100 dark:text-gray-100">Freeze Game</h2>
-      <form id="freezeGameForm" class="space-y-4">
-        <div>
-          <label for="freezePlayer1Name" class="block text-sm font-medium text-gray-300 dark:text-gray-200">Player 1 (Us)</label>
-          <input type="text" id="freezePlayer1Name" name="freezePlayer1Name" required class="mt-1 block w-full border border-gray-600 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100" placeholder="Enter Player 1 Name for Freeze">
-        </div>
-        <div>
-          <label for="freezePlayer2Name" class="block text-sm font-medium text-gray-300 dark:text-gray-200">Player 2 (Dem)</label>
-          <input type="text" id="freezePlayer2Name" name="freezePlayer2Name" required class="mt-1 block w-full border border-gray-600 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100" placeholder="Enter Player 2 Name for Freeze">
-        </div>
-        <div class="flex justify-end space-x-2">
-          <button type="button" onclick="closeFreezeGameModal()" class="bg-gray-600 text-gray-100 px-4 py-2 rounded-xl hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:focus:ring-gray-500">
-            Cancel
-          </button>
-          <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-400">
-            Freeze
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
+<div class="rounded-xl shadow-sm p-4 bg-gray-50 dark:bg-gray-700">
+<h4 class="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100">Freezer Games</h4>
+<div id="freezerGamesList" class="space-y-4"></div>
 </div>
-
-<!-- Confirmation Modal -->
-<div 
-  id="confirmationModal" 
-  class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4"
-  role="dialog" 
-  aria-modal="true" 
-  aria-labelledby="confirmationModalTitle"
->
-  <div class="bg-navy-800 w-full max-w-md rounded-xl shadow-lg dark:bg-gray-800" id="confirmationModalContent">
-    <div class="p-6">
-      <h2 id="confirmationModalTitle" class="text-2xl font-bold mb-4 text-gray-100 dark:text-gray-100">Confirm Action</h2>
-      <p id="confirmationModalMessage" class="text-gray-300 dark:text-gray-300 mb-6">
-        Starting a new game will clear current game progress, are you sure you want to continue?
-      </p>
-      <div class="flex justify-end space-x-2">
-        <button type="button" id="noModalButton" class="bg-gray-600 text-gray-100 px-4 py-2 rounded-xl hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:focus:ring-gray-500">
-          No
-        </button>
-        <button type="button" id="confirmModalButton" class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-400">
-          Yes
-        </button>
-      </div>
-    </div>
-  </div>
 </div>
-
-<!-- View Saved Game Modal -->
-<div 
-  id="viewSavedGameModal" 
-  class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4"
-  role="dialog" 
-  aria-modal="true" 
-  aria-labelledby="viewSavedGameTitle"
->
-  <div class="bg-navy-800 w-full max-w-4xl rounded-xl shadow-lg overflow-y-auto max-h-full dark:bg-gray-800" id="viewSavedGameModalContent">
-    <div class="flex justify-between items-center p-5 border-b border-gray-700 dark:border-gray-700">
-      <h3 id="viewSavedGameTitle" class="text-2xl font-semibold text-gray-100 dark:text-gray-100">Game Details</h3>
-      <button id="closeViewSavedGameModalBtn" class="text-gray-300 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-gray-300 dark:hover:text-gray-100" aria-label="Close View Saved Game Modal">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-        </svg>
-      </button>
-    </div>
-    <div id="viewSavedGameDetails" class="p-5 space-y-6"></div>
-  </div>
 </div>
-
-<!-- About Modal -->
-<div 
-  id="aboutModal" 
-  class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4"
-  role="dialog" 
-  aria-modal="true" 
-  aria-labelledby="aboutModalTitle"
->
-  <div class="bg-navy-800 w-full max-w-md rounded-xl shadow-lg dark:bg-gray-800" id="aboutModalContent">
-    <div class="p-6">
-      <h2 id="aboutModalTitle" class="text-2xl font-bold mb-4 text-gray-100 dark:text-gray-100">About Rook Game Scoring</h2>
-      <p class="text-gray-300 dark:text-gray-300 mb-4">
-        <strong>How to Use</strong>: Tap a team to begin bidding, enter the bid and the points, then press "Submit." Keep track of all round scores in the “History” section. You can also freeze a current game, view saved games, or start a new game from the menu.
-      </p>
-      <p class="text-gray-300 dark:text-gray-300 mb-4">
-        <strong>Current Version</strong>: 1.2.2.1
-      </p>
-      <p class="text-gray-300 dark:text-gray-300 mb-6">
-        Explore the statistics section to see overall wins, average bids, and more!
-      </p>
-      <p class="text-gray-300 dark:text-gray-300 mb-6">Author: Marv Heinonen</p>
-      <div class="flex justify-end space-x-2">
-        <button type="button" onclick="closeAboutModal()" class="bg-gray-600 text-gray-100 px-4 py-2 rounded-xl hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:focus:ring-gray-500">
-          Close
-        </button>
-      </div>
-    </div>
-  </div>
 </div>
-
-<!-- Statistics Modal -->
-<div 
-  id="statisticsModal" 
-  class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4"
-  role="dialog" 
-  aria-modal="true" 
-  aria-labelledby="statisticsModalTitle"
->
-  <div class="bg-navy-800 w-full max-w-md rounded-xl shadow-lg dark:bg-gray-800" id="statisticsModalContentWrapper">
-    <div class="p-6">
-      <h2 id="statisticsModalTitle" class="text-2xl font-bold mb-4 text-gray-100 dark:text-gray-100">Statistics</h2>
-      <div id="statisticsModalContent" class="text-gray-300 dark:text-gray-300">
-        <p>Loading statistics...</p>
-      </div>
-      <div class="flex justify-end space-x-2">
-        <button type="button" onclick="closeStatisticsModal()" class="bg-gray-600 text-gray-100 px-4 py-2 rounded-xl hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:focus:ring-gray-500">
-          Close
-        </button>
-      </div>
-    </div>
-  </div>
+<div id="saveGameModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="saveGameModalTitle">
+<div class="bg-white w-full max-w-md rounded-xl shadow-lg dark:bg-gray-800">
+<div class="p-6">
+<h2 id="saveGameModalTitle" class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100">Save Game</h2>
+<form id="saveGameForm" class="space-y-4">
+<div>
+<label for="player1Name" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Player 1 (Us)</label>
+<input type="text" id="player1Name" name="player1Name" required class="mt-1 block w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100" placeholder="Enter Player 1 Name"/>
 </div>
-
-<!-- Game Over Modal -->
-<div 
-  id="gameOverModal" 
-  class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4"
-  role="dialog" 
-  aria-modal="true" 
-  aria-labelledby="gameOverModalTitle"
->
-  <div class="bg-navy-800 w-full max-w-md rounded-xl shadow-lg dark:bg-gray-800" id="gameOverModalContent">
-    <div class="p-6">
-      <h2 id="gameOverModalTitle" class="text-2xl font-bold mb-4 text-gray-100 dark:text-gray-100">Game Over</h2>
-      <form id="gameOverForm" class="space-y-4">
-        <div>
-          <label for="gameOverPlayer1Name" class="block text-sm font-medium text-gray-300 dark:text-gray-200">Player 1 (Us)</label>
-          <input type="text" id="gameOverPlayer1Name" name="gameOverPlayer1Name" required class="mt-1 block w-full border border-gray-600 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100" placeholder="Enter Player 1 Name">
-        </div>
-        <div>
-          <label for="gameOverPlayer2Name" class="block text-sm font-medium text-gray-300 dark:text-gray-200">Player 2 (Dem)</label>
-          <input type="text" id="gameOverPlayer2Name" name="gameOverPlayer2Name" required class="mt-1 block w-full border border-gray-600 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100" placeholder="Enter Player 2 Name">
-        </div>
-        <div class="flex justify-end space-x-2">
-          <button type="button" onclick="closeGameOverModal()" class="bg-gray-600 text-gray-100 px-4 py-2 rounded-xl hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:focus:ring-gray-500">
-            Cancel
-          </button>
-          <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-400">
-            Save
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
+<div>
+<label for="player2Name" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Player 2 (Dem)</label>
+<input type="text" id="player2Name" name="player2Name" required class="mt-1 block w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100" placeholder="Enter Player 2 Name"/>
 </div>
-
-<script>
-"use strict";
-
-/**
- * Utility to close if clicked outside the modal content.
- * We attach a click listener to the modal's outer container (the overlay).
- * If the user clicked the overlay itself (not the inner content),
- * we call the provided close function.
- */
-function setupModalClickOutside(modalId, closeFn) {
-  const modalElement = document.getElementById(modalId);
-  if (!modalElement) return;
-  
-  modalElement.addEventListener("click", (event) => {
-    // If the user clicked directly on the overlay (and not the inner content)
-    if (event.target === modalElement) {
-      closeFn();
-    }
-  });
-}
-
-const Icons = {
-  AlertCircle: '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4m0 4h.01"></path></svg>',
-  Undo: '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v6h6M21 17a9 9 0 0 0-9-9c-2.5 0-4.75.9-6.5 2.4L3 11"/></svg>',
-  Trash: '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>',
-  Load: '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 11H6 a2 2 0 012 2v6a2 2 0 01-2 2H4 a2 2 0 01-2-2v-6 a8.001 8.001 0 0115.356-2z"/></svg>',
-  Sun: '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m8.66-8.66h-1 M4.34 12.66h-1m15.364 4.95l-.707-.707 M6.343 6.343l-.707-.707 m12.728 0l-.707.707 M6.343 17.657l-.707.707 M12 8a4 4 0 100 8 4 4 0 000-8z"/></svg>',
-  Moon: '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>',
-  Trophy: '<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 10V4h10v6M7 10l-1 12h12 l-1-12M7 10h10m-5 12v-6"/></svg>'
-};
-
-const presetBids = [120, 125, 130, 135, 140, "other"];
-
-const DEFAULT_STATE = {
-  rounds: [],
-  biddingTeam: "",
-  bidAmount: "",
-  customBidValue: "",
-  showCustomBid: false,
-  enterBidderPoints: false,
-  error: "",
-  gameOver: false,
-  winner: null,
-  victoryMethod: null,
-  savedScoreInputStates: { us: null, Dem: null },
-  lastBidAmount: null,
-  lastBidTeam: null
-};
-
-let state = { ...DEFAULT_STATE };
-let confettiTriggered = false;
-let ephemeralCustomBid = "";
-let ephemeralPoints = "";
-
-const ACTIVE_GAME_KEY = "activeGameState";
-const DARK_MODE_KEY = "darkModeEnabled";
-
-let confirmationCallback = null;
-let noCallback = null;
-let cancelCallback = null;
-
-/* Dark mode handling */
-function toggleDarkMode(e) {
-  e.stopPropagation();
-  const htmlElement = document.documentElement;
-  const isDark = htmlElement.classList.toggle("dark");
-  localStorage.setItem(DARK_MODE_KEY, isDark);
-  updateDarkModeButton(isDark);
-  updateMetaThemeColor(isDark);
-}
-
-function updateDarkModeButton(isDarkMode) {
-  const darkModeIcon = document.getElementById("darkModeIcon");
-  const darkModeLabel = document.getElementById("darkModeLabel");
-  if (!darkModeIcon || !darkModeLabel) return;
-  darkModeIcon.innerHTML = isDarkMode ? Icons.Sun : Icons.Moon;
-  darkModeLabel.textContent = isDarkMode ? "Light Mode" : "Dark Mode";
-}
-
-function initializeDarkMode() {
-  const savedDarkMode = JSON.parse(localStorage.getItem(DARK_MODE_KEY));
-  if (savedDarkMode) {
-    document.documentElement.classList.add("dark");
-  } else {
-    document.documentElement.classList.remove("dark");
-  }
-  updateDarkModeButton(savedDarkMode);
-  updateMetaThemeColor(savedDarkMode);
-}
-
-function updateMetaThemeColor(isDarkMode) {
-  const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-  if (metaThemeColor) {
-    metaThemeColor.setAttribute("content", isDarkMode ? "#1a202c" : "#ffffff");
-  }
-}
-
-/* Local storage helpers */
-const getLocalStorage = (key) => JSON.parse(localStorage.getItem(key)) || [];
-const setLocalStorage = (key, data) => localStorage.setItem(key, JSON.stringify(data));
-
-/* Save indicator */
-function showSaveIndicator() {
-  const saveIndicator = document.getElementById("saveIndicator");
-  if (!saveIndicator) return;
-  saveIndicator.classList.remove("hidden");
-  saveIndicator.classList.add("show");
-  setTimeout(() => {
-    saveIndicator.classList.remove("show");
-    saveIndicator.classList.add("hidden");
-  }, 1000);
-}
-
-/* Current game state loading/saving */
-function loadCurrentGameState() {
-  const savedState = localStorage.getItem(ACTIVE_GAME_KEY);
-  if (!savedState) return;
-  try {
-    const parsedState = JSON.parse(savedState);
-    state = { ...state, ...parsedState };
-    renderApp();
-  } catch (error) {
-    console.error("Failed to parse saved game state:", error);
-    localStorage.removeItem(ACTIVE_GAME_KEY);
-  }
-}
-
-function saveCurrentGameState() {
-  if (state.gameOver) {
-    localStorage.removeItem(ACTIVE_GAME_KEY);
-  } else {
-    localStorage.setItem(ACTIVE_GAME_KEY, JSON.stringify(state));
-    showSaveIndicator();
-  }
-}
-
-/* Deletion helpers */
-function deleteGame(storageKey, index, itemName) {
-  const items = getLocalStorage(storageKey);
-  openConfirmationModal(
-    `Are you sure you want to delete this ${itemName}?`,
-    () => {
-      items.splice(index, 1);
-      setLocalStorage(storageKey, items);
-      renderSavedGames();
-      renderFreezerGames();
-      closeConfirmationModal();
-    },
-    () => {
-      closeConfirmationModal();
-    },
-    () => {
-      closeConfirmationModal();
-    }
-  );
-}
-
-/* Hamburger menu */
-function bringHamburgerToFront() {
-  document.getElementById("hamburgerIcon").style.zIndex = "9999";
-}
-
-function toggleMenu(e) {
-  e.stopPropagation();
-  const menu = document.getElementById("menu");
-  const hamburgerIcon = document.getElementById("hamburgerIcon");
-  const overlay = document.getElementById("menuOverlay");
-  const isOpen = menu.classList.contains("show");
-
-  if (isOpen) {
-    menu.classList.remove("show");
-    hamburgerIcon.classList.remove("open");
-    overlay.classList.remove("show");
-  } else {
-    menu.classList.add("show");
-    hamburgerIcon.classList.add("open");
-    overlay.classList.add("show");
-    bringHamburgerToFront();
-  }
-}
-
-function closeMenuOverlay() {
-  const menu = document.getElementById("menu");
-  const hamburgerIcon = document.getElementById("hamburgerIcon");
-  const overlay = document.getElementById("menuOverlay");
-  menu.classList.remove("show");
-  hamburgerIcon.classList.remove("open");
-  overlay.classList.remove("show");
-}
-
-/* Modal open/close */
-function closeSavedGamesModal() {
-  document.getElementById("savedGamesModal").classList.add("hidden");
-}
-
-function openAboutModal() {
-  document.getElementById("aboutModal").classList.remove("hidden");
-}
-
-function closeAboutModal() {
-  document.getElementById("aboutModal").classList.add("hidden");
-}
-
-function openStatisticsModal() {
-  document.getElementById("statisticsModal").classList.remove("hidden");
-  const stats = getStatistics();
-  if (!stats.totalGames) {
-    document.getElementById("statisticsModalContent").innerHTML = '<p class="text-gray-600 dark:text-gray-300">No completed games yet.</p>';
-  } else {
-    const methodsHTML = Object.entries(stats.methodCount)
-      .map(([method, count]) => {
-        return `
-          <div class="flex items-center justify-between py-1 border-b last:border-0 border-gray-200 dark:border-gray-700">
-            <span class="text-gray-700 dark:text-gray-300">${method}</span>
-            <span class="font-medium text-gray-800 dark:text-gray-100">${count}</span>
-          </div>
-        `;
-      })
-      .join("");
-
-    document.getElementById("statisticsModalContent").innerHTML = `
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <div class="space-y-2">
-          <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow-sm">
-            <p class="text-gray-500 dark:text-gray-200 text-sm uppercase font-semibold tracking-wide">Total Games</p>
-            <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">${stats.totalGames}</p>
-          </div>
-          <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow-sm">
-            <p class="text-gray-500 dark:text-gray-200 text-sm uppercase font-semibold tracking-wide">Us Wins</p>
-            <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">${stats.usWins}</p>
-          </div>
-          <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow-sm">
-            <p class="text-gray-500 dark:text-gray-200 text-sm uppercase font-semibold tracking-wide">Dem Wins</p>
-            <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">${stats.demWins}</p>
-          </div>
-        </div>
-        <div class="space-y-4">
-          <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow-sm">
-            <p class="text-gray-500 dark:text-gray-200 text-sm uppercase font-semibold tracking-wide">Victory Methods</p>
-            <div class="mt-2 space-y-1">${methodsHTML}</div>
-          </div>
-          <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow-sm">
-            <p class="text-gray-500 dark:text-gray-200 text-sm uppercase font-semibold tracking-wide">Average Bid</p>
-            <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">${stats.averageBid}</p>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-}
-
-function closeStatisticsModal() {
-  document.getElementById("statisticsModal").classList.add("hidden");
-}
-
-function openConfirmationModal(message, yesCallback, noCallbackFn, cancelCallbackFn) {
-  const confirmationModal = document.getElementById("confirmationModal");
-  const confirmationMessage = document.getElementById("confirmationModalMessage");
-  const confirmButton = document.getElementById("confirmModalButton");
-  const noButton = document.getElementById("noModalButton");
-  const cancelButton = document.getElementById("cancelModalButton"); // Possibly not visible by default
-
-  confirmationMessage.textContent = message;
-  confirmationCallback = yesCallback;
-  noCallback = noCallbackFn;
-  cancelCallback = cancelCallbackFn;
-
-  confirmationModal.classList.remove("hidden");
-
-  // Clone buttons to remove old event listeners, rebind new ones
-  const newConfirmButton = confirmButton.cloneNode(true);
-  confirmButton.parentNode.replaceChild(newConfirmButton, confirmButton);
-
-  const newNoButton = noButton.cloneNode(true);
-  noButton.parentNode.replaceChild(newNoButton, noButton);
-
-  const newCancelButton = cancelButton ? cancelButton.cloneNode(true) : null;
-  if (newCancelButton && cancelButton) {
-    cancelButton.parentNode.replaceChild(newCancelButton, cancelButton);
-  }
-
-  newConfirmButton.addEventListener("click", () => {
-    if (confirmationCallback) confirmationCallback();
-  });
-  newNoButton.addEventListener("click", () => {
-    if (noCallback) noCallback();
-  });
-  if (newCancelButton) {
-    newCancelButton.addEventListener("click", () => {
-      if (cancelCallback) cancelCallback();
-    });
-  }
-}
-
-function closeConfirmationModal() {
-  document.getElementById("confirmationModal").classList.add("hidden");
-  confirmationCallback = null;
-  noCallback = null;
-  cancelCallback = null;
-}
-
-document.addEventListener("keydown", function(e) {
-  const confirmationModal = document.getElementById("confirmationModal");
-  if (e.key === "Escape") {
-    if (confirmationModal && !confirmationModal.classList.contains("hidden")) {
-      closeConfirmationModal();
-    }
-    closeSavedGamesModal();
-    closeSaveGameModal();
-    closeFreezeGameModal();
-  }
-});
-
-function updateState(newState) {
-  state = { ...state, ...newState };
-  renderApp();
-}
-
-/* Saved Games */
-function openSavedGamesModal() {
-  renderSavedGames();
-  renderFreezerGames();
-  document.getElementById("savedGamesModal").classList.remove("hidden");
-  document.getElementById("savedGamesModal").focus();
-}
-
-function openSaveGameModal() {
-  document.getElementById("saveGameModal").classList.remove("hidden");
-}
-
-function closeSaveGameModal() {
-  document.getElementById("saveGameModal").classList.add("hidden");
-  document.getElementById("saveGameForm").reset();
-}
-
-function openFreezeGameModal() {
-  document.getElementById("freezeGameModal").classList.remove("hidden");
-}
-
-function closeFreezeGameModal() {
-  document.getElementById("freezeGameModal").classList.add("hidden");
-  document.getElementById("freezeGameForm").reset();
-}
-
-/* Main logic */
-function handleTeamClick(team) {
-  if (state.gameOver) return;
-  if (state.biddingTeam === team) {
-    state.savedScoreInputStates[team] = {
-      bidAmount: state.bidAmount,
-      customBidValue: state.customBidValue,
-      showCustomBid: state.showCustomBid,
-      enterBidderPoints: state.enterBidderPoints,
-      error: state.error
-    };
-    updateState({
-      biddingTeam: "",
-      bidAmount: "",
-      showCustomBid: false,
-      customBidValue: "",
-      enterBidderPoints: false,
-      error: ""
-    });
-  } else {
-    const otherTeam = team === "us" ? "Dem" : "us";
-    state.savedScoreInputStates[otherTeam] = null;
-    let newState = {
-      biddingTeam: team,
-      bidAmount: "",
-      showCustomBid: false,
-      customBidValue: "",
-      enterBidderPoints: false,
-      error: ""
-    };
-    const saved = state.savedScoreInputStates[team];
-    if (saved) {
-      newState = { ...newState, ...saved };
-    }
-    updateState(newState);
-  }
-  ephemeralCustomBid = "";
-  ephemeralPoints = "";
-}
-
-function handleBidSelect(bid) {
-  if (bid === "other") {
-    ephemeralCustomBid = "";
-    updateState({ showCustomBid: true, bidAmount: "", customBidValue: "" });
-  } else {
-    ephemeralCustomBid = "";
-    updateState({ showCustomBid: false, bidAmount: bid.toString(), customBidValue: "" });
-  }
-  if (bid !== "other") {
-    updateState({ lastBidAmount: bid.toString(), lastBidTeam: state.biddingTeam });
-  } else {
-    updateState({ lastBidAmount: null, lastBidTeam: null });
-  }
-}
-
-function handleCustomBidChange(e) {
-  ephemeralCustomBid = e.target.value;
-  const errorMsg = validateBid(ephemeralCustomBid);
-  if (errorMsg) {
-    updateState({
-      customBidValue: ephemeralCustomBid,
-      bidAmount: "",
-      lastBidAmount: null,
-      lastBidTeam: null
-    });
-  } else {
-    updateState({
-      customBidValue: ephemeralCustomBid,
-      bidAmount: ephemeralCustomBid,
-      lastBidAmount: ephemeralCustomBid,
-      lastBidTeam: state.biddingTeam
-    });
-  }
-}
-
-function handleBiddingPointsToggle(isBiddingTeam) {
-  ephemeralPoints = "";
-  updateState({ enterBidderPoints: isBiddingTeam });
-}
-
-function handleFormSubmit(e) {
-  e.preventDefault();
-  const { biddingTeam, bidAmount, rounds, enterBidderPoints } = state;
-  const pointsInput = document.getElementById("pointsInput");
-  if (!pointsInput) {
-    updateState({ error: "Points input field not found." });
-    return;
-  }
-  const pointsValue = pointsInput.value;
-
-  if (!biddingTeam || !bidAmount) {
-    updateState({ error: "Please enter a custom bid" });
-    return;
-  }
-  const bidError = validateBid(bidAmount);
-  const pointsError = validatePoints(pointsValue);
-  if (bidError || pointsError) {
-    updateState({ error: bidError || pointsError });
-    return;
-  }
-
-  const numericBid = Number(bidAmount);
-  const numericPoints = Number(pointsValue);
-
-  let pointsForBiddingTeam, pointsForNonBiddingTeam;
-
-  if (numericPoints === 360) {
-    if (enterBidderPoints) {
-      // Bidding team scores 360 points
-      pointsForBiddingTeam = 360;
-      pointsForNonBiddingTeam = 0;
-    } else {
-      // Non-bidding team scores 360 points
-      pointsForBiddingTeam = -numericBid;
-      pointsForNonBiddingTeam = 360;
-    }
-  } else {
-    // Normal case (points are not 360)
-    pointsForBiddingTeam = enterBidderPoints
-      ? numericPoints
-      : 180 - numericPoints;
-    pointsForNonBiddingTeam = 180 - pointsForBiddingTeam;
-  }
-
-  const usPoints = biddingTeam === "us"
-    ? (pointsForBiddingTeam < numericBid ? -numericBid : pointsForBiddingTeam)
-    : pointsForNonBiddingTeam;
-  const demPoints = biddingTeam === "Dem"
-    ? (pointsForBiddingTeam < numericBid ? -numericBid : pointsForBiddingTeam)
-    : pointsForNonBiddingTeam;
-
-  const lastRunningTotals = rounds.length ? rounds[rounds.length - 1].runningTotals : { us: 0, Dem: 0 };
-  const newRunningTotals = {
-    us: lastRunningTotals.us + usPoints,
-    Dem: lastRunningTotals.Dem + demPoints
-  };
-
-  const newRound = {
-    biddingTeam,
-    bidAmount: numericBid,
-    usPoints,
-    DemPoints: demPoints,
-    runningTotals: newRunningTotals
-  };
-  const newRounds = [...rounds, newRound];
-
-  // Check if game is over
-  const biddingTeamSuccess = (biddingTeam === "us")
-    ? usPoints >= numericBid && usPoints > 0
-    : demPoints >= numericBid && demPoints > 0;
-  const forcedFail = (biddingTeam === "us" ? usPoints < 0 : demPoints < 0);
-  const spread = Math.abs(newRunningTotals.us - newRunningTotals.Dem);
-  const leadingTeam = newRunningTotals.us > newRunningTotals.Dem ? "us" : "Dem";
-  const thousandSpread = spread >= 1000;
-
-  let gameOver = false;
-  let winner = null;
-  let reason = "";  // A short text describing how the game ended
-  let victoryMethod = "Won on Bid"; // Default assumption
-
-  // Condition: 1000-point spread
-  if (thousandSpread) {
-    gameOver = true;
-    winner = leadingTeam;
-    reason = "a 1000-point spread";
-    victoryMethod = "1000 Point Spread";
-  }
-  // Condition: Bidding team fails -> other team might get 500 or more
-  else if (forcedFail && (
-    (biddingTeam === "us" && newRunningTotals.Dem >= 500) ||
-    (biddingTeam === "Dem" && newRunningTotals.us >= 500)
-  )) {
-    gameOver = true;
-    winner = (biddingTeam === "us" ? "Dem" : "us");
-    reason = `${winner} reached 500 points after the other team failed their bid`;
-    victoryMethod = "Set Other Team";
-  }
-  // Condition: Bidding team or forced end at 500+
-  else if (
-    (biddingTeam === "us" && newRunningTotals.us >= 500 && (biddingTeamSuccess || forcedFail)) ||
-    (biddingTeam === "Dem" && newRunningTotals.Dem >= 500 && (biddingTeamSuccess || forcedFail))
-  ) {
-    gameOver = true;
-    winner = biddingTeam;
-    reason = "reached 500 points";
-    victoryMethod = "Won on Bid";
-  }
-
-  ephemeralCustomBid = "";
-  ephemeralPoints = "";
-
-  if (gameOver) {
-    updateState({
-      rounds: newRounds,
-      gameOver,
-      winner,
-      victoryMethod,
-      biddingTeam: "",
-      bidAmount: "",
-      showCustomBid: false,
-      customBidValue: "",
-      enterBidderPoints: false,
-      error: ""
-    });
-    saveCurrentGameState();
-  } else {
-    updateState({
-      rounds: newRounds,
-      biddingTeam: "",
-      bidAmount: "",
-      showCustomBid: false,
-      customBidValue: "",
-      enterBidderPoints: false,
-      error: ""
-    });
-    saveCurrentGameState();
-  }
-}
-
-function handleUndo() {
-  if (!state.rounds.length) return;
-  const updatedRounds = state.rounds.slice(0, -1);
-  let restoredBidAmount = null;
-  let restoredBiddingTeam = null;
-  if (updatedRounds.length > 0) {
-    const lastRound = updatedRounds[updatedRounds.length - 1];
-    restoredBidAmount = lastRound.bidAmount.toString();
-    restoredBiddingTeam = lastRound.biddingTeam;
-  }
-  updateState({
-    rounds: updatedRounds,
-    gameOver: false,
-    winner: null,
-    victoryMethod: null,
-    lastBidAmount: restoredBidAmount,
-    lastBidTeam: restoredBiddingTeam
-  });
-  saveCurrentGameState();
-}
-
-function handleNewGame() {
-  if (state.rounds.length > 0) {
-    openConfirmationModal(
-      "Starting a new game will clear current game progress, are you sure you want to continue?",
-      () => {
-        closeConfirmationModal();
-        localStorage.removeItem(ACTIVE_GAME_KEY);
-        ephemeralCustomBid = "";
-        ephemeralPoints = "";
-        updateState({ ...DEFAULT_STATE });
-        confettiTriggered = false;
-      },
-      () => {
-        // No
-        closeConfirmationModal();
-      },
-      () => {
-        // Cancel or extra callback (not visible, but just in case)
-        closeConfirmationModal();
-      }
-    );
-  } else {
-    updateState({ ...DEFAULT_STATE });
-  }
-}
-
-function handleManualSaveGame() {
-  if (state.rounds.length) {
-    openSaveGameModal();
-  }
-}
-
-/**
- * Now, handleFreezeGameModalSubmit accepts two new fields:
- * freezePlayer1Name (Us) and freezePlayer2Name (Dem).
- * We'll store them along with finalScore, etc.
- */
-function handleFreezeGameModalSubmit(player1Name, player2Name) {
-  if (!player1Name || !player2Name) return;
-  const freezerGames = getLocalStorage("freezerGames");
-
-  // Calculate current final score
-  const finalScore = state.rounds.reduce(
-    (acc, round) => ({
-      us: acc.us + round.usPoints,
-      Dem: acc.Dem + round.DemPoints
-    }),
-    { us: 0, Dem: 0 }
-  );
-
-  const lastRound = state.rounds[state.rounds.length - 1];
-  freezerGames.push({
-    player1: player1Name,
-    player2: player2Name,
-    finalScore,
-    lastBid: lastRound ? lastRound.bidAmount : null,
-    winner: state.winner,
-    victoryMethod: state.victoryMethod,
-    rounds: state.rounds,
-    timestamp: new Date().toISOString()
-  });
-
-  setLocalStorage("freezerGames", freezerGames);
-  localStorage.removeItem(ACTIVE_GAME_KEY);
-  ephemeralCustomBid = "";
-  ephemeralPoints = "";
-  updateState({ ...DEFAULT_STATE });
-  confettiTriggered = false;
-}
-
-function handleFreezerGame() {
-  if (state.rounds.length) {
-    openFreezeGameModal();
-  }
-}
-
-function handleSaveGameFormSubmit(e) {
-  e.preventDefault();
-  const player1Name = document.getElementById("player1Name").value.trim();
-  const player2Name = document.getElementById("player2Name").value.trim();
-  if (!player1Name || !player2Name) return;
-
-  const finalScore = state.rounds.length
-    ? state.rounds[state.rounds.length - 1].runningTotals
-    : { us: 0, Dem: 0 };
-  const savedGames = getLocalStorage("savedGames");
-
-  savedGames.push({
-    player1: player1Name,
-    player2: player2Name,
-    rounds: state.rounds,
-    finalScore,
-    winner: state.winner,
-    victoryMethod: state.victoryMethod,
-    timestamp: new Date().toISOString()
-  });
-
-  setLocalStorage("savedGames", savedGames);
-  localStorage.removeItem(ACTIVE_GAME_KEY);
-  ephemeralCustomBid = "";
-  ephemeralPoints = "";
-  updateState({ ...DEFAULT_STATE });
-  closeSaveGameModal();
-  confettiTriggered = false;
-}
-
-function handleFreezeGameFormSubmit(e) {
-  e.preventDefault();
-  const freezePlayer1Name = document.getElementById("freezePlayer1Name").value.trim();
-  const freezePlayer2Name = document.getElementById("freezePlayer2Name").value.trim();
-  handleFreezeGameModalSubmit(freezePlayer1Name, freezePlayer2Name);
-  closeFreezeGameModal();
-}
-
-/* Loading freezer/saved games */
-function loadFreezerGame(index) {
-  const freezerGames = getLocalStorage("freezerGames");
-  const freezerGame = freezerGames[index];
-  if (!freezerGame) return;
-
-  openConfirmationModal(
-    `Load the freezer game between "${freezerGame.player1}" and "${freezerGame.player2}"? This will overwrite the current game.`,
-    () => {
-      closeConfirmationModal();
-      updateState({
-        rounds: freezerGame.rounds,
-        gameOver: !!freezerGame.winner,
-        winner: freezerGame.winner || null,
-        victoryMethod: freezerGame.victoryMethod || null,
-        biddingTeam: "",
-        bidAmount: "",
-        showCustomBid: false,
-        customBidValue: "",
-        enterBidderPoints: false,
-        error: "",
-        lastBidAmount: null,
-        lastBidTeam: null
-      });
-      freezerGames.splice(index, 1);
-      setLocalStorage("freezerGames", freezerGames);
-      closeSavedGamesModal();
-      saveCurrentGameState();
-      confettiTriggered = false;
-    },
-    () => {
-      closeConfirmationModal();
-    },
-    () => {
-      closeConfirmationModal();
-    }
-  );
-}
-
-function loadSavedGame(index) {
-  const savedGames = getLocalStorage("savedGames");
-  const savedGame = savedGames[index];
-  if (!savedGame) return;
-
-  openConfirmationModal(
-    `Load the completed game between "${savedGame.player1}" and "${savedGame.player2}"? This will overwrite the current game.`,
-    () => {
-      closeConfirmationModal();
-      updateState({
-        rounds: savedGame.rounds,
-        gameOver: !!savedGame.winner,
-        winner: savedGame.winner || null,
-        victoryMethod: savedGame.victoryMethod || null,
-        biddingTeam: "",
-        bidAmount: "",
-        showCustomBid: false,
-        customBidValue: "",
-        enterBidderPoints: false,
-        error: "",
-        lastBidAmount: null,
-        lastBidTeam: null
-      });
-      closeSavedGamesModal();
-      saveCurrentGameState();
-      confettiTriggered = false;
-    },
-    () => {
-      closeConfirmationModal();
-    },
-    () => {
-      closeConfirmationModal();
-    }
-  );
-}
-
-function viewSavedGame(index) {
-  const savedGames = getLocalStorage("savedGames");
-  const game = savedGames[index];
-  if (!game) return;
-  closeSavedGamesModal();
-  const html = renderReadOnlyGameDetails(game);
-  document.getElementById("viewSavedGameDetails").innerHTML = html;
-  openViewSavedGameModal();
-}
-
-function renderReadOnlyGameDetails(game) {
-  const { player1, player2, finalScore, rounds, winner, victoryMethod, timestamp } = game;
-
-  const roundDetails = rounds
-    .map((r, idx) => {
-      const bidIndicator = r.biddingTeam === "us" ? `← (${r.bidAmount})` : `(${r.bidAmount}) →`;
-      return `
-      <div class="grid grid-cols-3 gap-2 p-2 bg-gray-50 rounded-xl dark:bg-gray-700">
-        <div class="text-left text-gray-800 dark:text-gray-100 font-semibold">${r.runningTotals.us}</div>
-        <div class="text-center">${bidIndicator}</div>
-        <div class="text-right text-gray-800 dark:text-gray-100 font-semibold">${r.runningTotals.Dem}</div>
-      </div>
-      `;
-    })
-    .join("");
-
-  return `
-    <div class="space-y-4">
-      <div>
-        <h4 class="text-xl font-bold text-gray-800 dark:text-gray-100">${player1} vs ${player2}</h4>
-        <p class="text-gray-600 dark:text-gray-300 mt-1">Date Played: ${new Date(timestamp).toLocaleString()}</p>
-      </div>
-      <div>
-        <p class="font-semibold text-gray-800 dark:text-gray-100">Final Score:</p>
-        <p class="text-gray-700 dark:text-gray-300 mt-1">Us: ${finalScore.us} | Dem: ${finalScore.Dem}</p>
-      </div>
-      <div>
-        <p class="font-semibold text-gray-800 dark:text-gray-100">Winner:</p>
-        <p class="text-gray-700 dark:text-gray-300 mt-1">${winner === "us" ? "Us" : winner === "Dem" ? "Dem" : "N/A"}</p>
-      </div>
-      <div>
-        <p class="font-semibold text-gray-800 dark:text-gray-100">Victory Method:</p>
-        <p class="text-gray-700 dark:text-gray-300 mt-1">${victoryMethod || "N/A"}</p>
-      </div>
-      <div>
-        <p class="font-semibold text-gray-800 dark:text-gray-100 mb-2">Round-by-Round History:</p>
-        <div class="space-y-2">
-          ${roundDetails || "<p>No rounds recorded.</p>"}
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function renderSavedGames() {
-  const savedGames = getLocalStorage("savedGames");
-  const savedGamesList = document.getElementById("savedGamesList");
-  if (!savedGames.length) {
-    savedGamesList.innerHTML = '<p class="text-gray-600 dark:text-gray-300">No completed games available.</p>';
-    return;
-  }
-  savedGamesList.innerHTML = savedGames
-    .map((game, index) => {
-      return `
-        <div class="border p-4 rounded-xl shadow-sm bg-gray-50 dark:bg-gray-700">
-          <div class="flex justify-between items-center">
-            <div>
-              <p class="font-semibold text-gray-800 dark:text-gray-100">Players:</p>
-              <p>${game.player1} vs ${game.player2}</p>
+<div class="flex justify-end space-x-2">
+<button type="button" onclick="closeSaveGameModal()" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-xl hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:focus:ring-gray-500">Cancel</button>
+<button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-400">Save</button>
+</div>
+</form>
+</div>
+</div>
+</div>
+<div id="freezeGameModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="freezeGameModalTitle">
+<div class="bg-white w-full max-w-md rounded-xl shadow-lg dark:bg-gray-800">
+<div class="p-6">
+<h2 id="freezeGameModalTitle" class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100">Freeze Game</h2>
+<form id="freezeGameForm" class="space-y-4">
+<div>
+<label for="freezeGameName" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Game Name</label>
+<input type="text" id="freezeGameName" name="freezeGameName" required class="mt-1 block w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100" placeholder="Enter Freezer Game Name"/>
+</div>
+<div>
+<label for="freezeUsName" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Team "Us" Name</label>
+<input type="text" id="freezeUsName" name="freezeUsName" class="mt-1 block w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100" placeholder="Enter 'Us' Team Name (Optional)"/>
+</div>
+<div>
+<label for="freezeDemName" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Team "Dem" Name</label>
+<input type="text" id="freezeDemName" name="freezeDemName" class="mt-1 block w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100" placeholder="Enter 'Dem' Team Name (Optional)"/>
+</div>
+<div class="flex justify-end space-x-2">
+<button type="button" onclick="closeFreezeGameModal()" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-xl hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:focus:ring-gray-500">Cancel</button>
+<button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-400">Freeze</button>
+</div>
+</form>
+</div>
+</div>
+</div>
+<div id="confirmationModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="confirmationModalTitle">
+<div class="bg-white w-full max-w-md rounded-xl shadow-lg dark:bg-gray-800">
+<div class="p-6">
+<h2 id="confirmationModalTitle" class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100">Confirm Action</h2>
+<p id="confirmationModalMessage" class="text-gray-700 dark:text-gray-300 mb-6">Are you sure you want to proceed?</p>
+<div class="flex justify-end space-x-2">
+<button type="button" id="noModalButton" class="bg-gray-400 text-white px-4 py-2 rounded-xl hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500 dark:bg-gray-400 dark:hover:bg-gray-500 dark:focus:ring-yellow-400">No</button>
+<button type="button" id="confirmModalButton" class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-red-500 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-red-400">Yes</button>
+</div>
+</div>
+</div>
+</div>
+<div id="viewSavedGameModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="viewSavedGameTitle">
+<div class="bg-white w-full max-w-4xl rounded-xl shadow-lg overflow-y-auto max-h-full dark:bg-gray-800">
+<div class="flex justify-between items-center p-5 border-b border-gray-200 dark:border-gray-700">
+<h3 id="viewSavedGameTitle" class="text-2xl font-semibold text-gray-800 dark:text-gray-100">Game Details</h3>
+<button id="closeViewSavedGameModalBtn" class="text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-gray-300 dark:hover:text-gray-100" aria-label="Close View Saved Game Modal">
+<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+</svg>
+</button>
+</div>
+<div id="viewSavedGameDetails" class="p-5 space-y-6"></div>
+</div>
+</div>
+<div id="aboutModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="aboutModalTitle">
+<div class="bg-white w-full max-w-md rounded-xl shadow-lg dark:bg-gray-800">
+<div class="p-6">
+<h2 id="aboutModalTitle" class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100">About Rook Game Scoring</h2>
+<p class="text-gray-700 dark:text-gray-300 mb-4"><strong>How to Use:</strong> Tap a team to begin bidding, enter the bid and the points, then press "Submit." Keep track of all round scores in the “History” section. You can also freeze a current game, view saved games, or start a new game from the menu. Explore the statistics section to see overall wins, average bids, and more. Enjoy your Rook games!</p>
+<p class="text-gray-700 dark:text-gray-300 mb-4"><strong>What's New in 1.2.3:</strong> - Added separate team name fields for freezer games - Changed 'New Game' confirmation to a yes/no prompt - Various small UI and logic improvements</p>
+<div class="flex justify-end space-x-2">
+<button type="button" onclick="closeAboutModal()" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-xl hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:focus:ring-gray-500">Close</button>
+</div>
+</div>
+</div>
+</div>
+<div id="statisticsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="statisticsModalTitle">
+<div class="bg-white w-full max-w-4xl rounded-xl shadow-lg dark:bg-gray-800">
+<div class="p-6">
+<h2 id="statisticsModalTitle" class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100">Statistics</h2>
+<div id="statisticsModalContent"></div>
+<div class="flex justify-end space-x-2 mt-6">
+<button type="button" onclick="closeStatisticsModal()" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-xl hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:focus:ring-gray-500">Close</button>
+</div>
+</div>
+</div>
+</div>
+<script>"use strict";const Icons={AlertCircle:`<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4m0 4h.01"></path></svg>`,Undo:`<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v6h6M21 17a9 9 0 0 0-9-9c-2.5 0-4.75.9-6.5 2.4L3 11"/></svg>`,Trash:`<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>`,Load:`<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 11H6 a2 2 0 012 2v6a2 2 0 01-2 2H4 a2 2 0 01-2-2v-6 a8.001 8.001 0 0115.356-2z"/></svg>`,Sun:`<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m8.66-8.66h-1 M4.34 12.66h-1m15.364 4.95l-.707-.707 M6.343 6.343l-.707-.707 m12.728 0l-.707.707 M6.343 17.657l-.707.707 M12 8a4 4 0 100 8 4 4 0 000-8z"/></svg>`,Moon:`<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>`,Trophy:`<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 10V4h10v6M7 10l-1 12h12 l-1-12M7 10h10m-5 12v-6"/></svg>`};const presetBids=[120,125,130,135,140,"other"],DEFAULT_STATE={rounds:[],biddingTeam:"",bidAmount:"",customBidValue:"",showCustomBid:false,enterBidderPoints:false,error:"",gameOver:false,winner:null,victoryMethod:null,savedScoreInputStates:{us:null,Dem:null},lastBidAmount:null,lastBidTeam:null};let state={...DEFAULT_STATE},confettiTriggered=false,ephemeralCustomBid="",ephemeralPoints="",ACTIVE_GAME_KEY="activeGameState",DARK_MODE_KEY="darkModeEnabled",confirmationCallback=null,noCallback=null;function toggleDarkMode(e){e.stopPropagation();const t=document.documentElement,n=t.classList.toggle("dark");localStorage.setItem(DARK_MODE_KEY,n),updateDarkModeButton(n),updateMetaThemeColor(n)}function updateDarkModeButton(e){const t=document.getElementById("darkModeIcon"),n=document.getElementById("darkModeLabel");t&&n&&(t.innerHTML=e?Icons.Sun:Icons.Moon,n.textContent=e?"Light Mode":"Dark Mode")}function initializeDarkMode(){const e=JSON.parse(localStorage.getItem(DARK_MODE_KEY));e?document.documentElement.classList.add("dark"):document.documentElement.classList.remove("dark"),updateDarkModeButton(e),updateMetaThemeColor(e)}function updateMetaThemeColor(e){const t=document.querySelector('meta[name="theme-color"]');t&&t.setAttribute("content",e?"#1a202c":"#ffffff")}const getLocalStorage=e=>JSON.parse(localStorage.getItem(e))||[],setLocalStorage=(e,t)=>localStorage.setItem(e,JSON.stringify(t));function showSaveIndicator(){const e=document.getElementById("saveIndicator");if(!e)return;e.classList.remove("hidden"),e.classList.add("show"),setTimeout(()=>{e.classList.remove("show"),e.classList.add("hidden")},1e3)}function loadCurrentGameState(){const e=localStorage.getItem(ACTIVE_GAME_KEY);if(e)try{const t=JSON.parse(e);state={...state,...t},renderApp()}catch(t){console.error("Failed to parse saved game state:",t),localStorage.removeItem(ACTIVE_GAME_KEY)}}function saveCurrentGameState(){state.gameOver?localStorage.removeItem(ACTIVE_GAME_KEY):(localStorage.setItem(ACTIVE_GAME_KEY,JSON.stringify(state)),showSaveIndicator())}function deleteGame(e,t,n){const o=getLocalStorage(e);openConfirmationModal(`Are you sure you want to delete this ${n}?`,()=>{o.splice(t,1),setLocalStorage(e,o),renderSavedGames(),renderFreezerGames(),closeConfirmationModal()},()=>{closeConfirmationModal()})}function bringHamburgerToFront(){document.getElementById("hamburgerIcon").style.zIndex="9999"}function toggleMenu(e){e.stopPropagation();const t=document.getElementById("menu"),n=document.getElementById("hamburgerIcon"),o=document.getElementById("menuOverlay"),r=t.classList.contains("show");r?(t.classList.remove("show"),n.classList.remove("open"),o.classList.remove("show")):(t.classList.add("show"),n.classList.add("open"),o.classList.add("show"),bringHamburgerToFront())}function closeMenuOverlay(){const e=document.getElementById("menu"),t=document.getElementById("hamburgerIcon"),n=document.getElementById("menuOverlay");e.classList.remove("show"),t.classList.remove("open"),n.classList.remove("show")}function closeSavedGamesModal(){document.getElementById("savedGamesModal").classList.add("hidden")}function openConfirmationModal(e,t,n){const o=document.getElementById("confirmationModal"),r=document.getElementById("confirmationModalMessage"),a=document.getElementById("confirmModalButton"),i=document.getElementById("noModalButton");r.textContent=e,confirmationCallback=t,noCallback=n,o.classList.remove("hidden");const c=a.cloneNode(true);a.parentNode.replaceChild(c,a);const l=i.cloneNode(true);i.parentNode.replaceChild(l,i),c.addEventListener("click",()=>{confirmationCallback&&confirmationCallback()}),l.addEventListener("click",()=>{noCallback&&noCallback()})}function closeConfirmationModal(){document.getElementById("confirmationModal").classList.add("hidden"),confirmationCallback=null,noCallback=null}document.addEventListener("DOMContentLoaded",()=>{const e=document.getElementById("closeViewSavedGameModalBtn");e&&e.addEventListener("click",closeViewSavedGameModal);const t=document.getElementById("closeSavedGamesModalBtn");t&&t.addEventListener("click",closeSavedGamesModal);const n=document.getElementById("saveGameForm");n&&n.addEventListener("submit",handleSaveGameFormSubmit);const o=document.getElementById("freezeGameForm");o&&o.addEventListener("submit",handleFreezeGameFormSubmit);loadCurrentGameState(),initializeDarkMode(),renderApp()});document.addEventListener("keydown",function(e){const t=document.getElementById("confirmationModal");"Escape"===e.key&&(t&&!t.classList.contains("hidden")&&closeConfirmationModal(),closeSavedGamesModal(),closeSaveGameModal(),closeFreezeGameModal(),closeViewSavedGameModal(),closeAboutModal(),closeStatisticsModal())});function updateState(e){state={...state,...e},renderApp()}function openSavedGamesModal(){renderSavedGames(),renderFreezerGames(),document.getElementById("savedGamesModal").classList.remove("hidden"),document.getElementById("savedGamesModal").focus()}function openSaveGameModal(){document.getElementById("saveGameModal").classList.remove("hidden")}function closeSaveGameModal(){document.getElementById("saveGameModal").classList.add("hidden"),document.getElementById("saveGameForm").reset()}function openFreezeGameModal(){document.getElementById("freezeGameModal").classList.remove("hidden")}function closeFreezeGameModal(){document.getElementById("freezeGameModal").classList.add("hidden"),document.getElementById("freezeGameForm").reset()}function handleTeamClick(e){if(state.gameOver)return;if(state.biddingTeam===e){state.savedScoreInputStates[e]={bidAmount:state.bidAmount,customBidValue:state.customBidValue,showCustomBid:state.showCustomBid,enterBidderPoints:state.enterBidderPoints,error:state.error},updateState({biddingTeam:"",bidAmount:"",showCustomBid:false,customBidValue:"",enterBidderPoints:false,error:""})}else{const t="us"===e?"Dem":"us";state.savedScoreInputStates[t]=null;let n={biddingTeam:e,bidAmount:"",showCustomBid:false,customBidValue:"",enterBidderPoints:false,error:""};const o=state.savedScoreInputStates[e];o&&(n={...n,...o}),updateState(n)}ephemeralCustomBid="",ephemeralPoints=""}function handleBidSelect(e){if("other"===e)(ephemeralCustomBid="",updateState({showCustomBid:true,bidAmount:"",customBidValue:""}));else(ephemeralCustomBid="",updateState({showCustomBid:false,bidAmount:e.toString(),customBidValue:""}));"other"!==e?updateState({lastBidAmount:e.toString(),lastBidTeam:state.biddingTeam}):updateState({lastBidAmount:null,lastBidTeam:null})}function handleCustomBidChange(e){ephemeralCustomBid=e.target.value;const t=validateBid(ephemeralCustomBid);t?updateState({customBidValue:ephemeralCustomBid,bidAmount:"",lastBidAmount:null,lastBidTeam:null}):updateState({customBidValue:ephemeralCustomBid,bidAmount:ephemeralCustomBid,lastBidAmount:ephemeralCustomBid,lastBidTeam:state.biddingTeam})}function handleBiddingPointsToggle(e){ephemeralPoints="",updateState({enterBidderPoints:e})}function handleFormSubmit(e){e.preventDefault();const{biddingTeam:t,bidAmount:n,rounds:o,enterBidderPoints:r}=state,a=document.getElementById("pointsInput");if(!a)return void updateState({error:"Points input field not found."});const i=a.value;if(!t||!n)return void updateState({error:"Please enter a custom bid"});const c=validateBid(n),l=validatePoints(i);if(c||l)return void updateState({error:c||l});const s=Number(n),d=Number(i);let m,u;if(360===d)r?(m=360,u=0):(m=-s,u=360);else m=r?d:180-d,u=180-m;const p="us"===t?m<s?-s:m:u,g="Dem"===t?m<s?-s:m:360===m?0:u,f=o.length?o[o.length-1].runningTotals:{us:0,Dem:0},v={us:f.us+p,Dem:f.Dem+g},h={biddingTeam:t,bidAmount:s,usPoints:p,DemPoints:g,runningTotals:v};const y=[...o,h],S="us"===t?p>=s&&p>0:"Dem"===t?g>=s&&g>0:false,b="us"===t?p<0:"Dem"===t?g<0:false,w=Math.abs(v.us-v.Dem),x=v.us>v.Dem?"us":"Dem",C=w>=1e3;let E=false,L=null,O="Won on Bid";C?(E=true,L=x,O="1000 Point Spread"):b&&(("us"===t&&v.Dem>=500)||("Dem"===t&&v.us>=500))?(E=true,L="us"===t?"Dem":"us",O="Set Other Team"):("us"===t&&v.us>=500&&(S||b)||"Dem"===t&&v.Dem>=500&&(S||b))&&(E=true,L=t,O="Won on Bid"),ephemeralCustomBid="",ephemeralPoints="",E?(updateState({rounds:y,gameOver:true,winner:L,victoryMethod:O,biddingTeam:"",bidAmount:"",showCustomBid:false,customBidValue:"",enterBidderPoints:false,error:""}),saveCurrentGameState()):(updateState({rounds:y,biddingTeam:"",bidAmount:"",showCustomBid:false,customBidValue:"",enterBidderPoints:false,error:""}),saveCurrentGameState())}function handleUndo(){if(!state.rounds.length)return;const e=state.rounds.slice(0,-1);let t=null,n=null;if(e.length>0){const o=e[e.length-1];t=o.bidAmount.toString(),n=o.biddingTeam}updateState({rounds:e,gameOver:false,winner:null,victoryMethod:null,lastBidAmount:t,lastBidTeam:n}),saveCurrentGameState()}function handleNewGame(){openConfirmationModal("Starting a new game will erase all current game data",()=>{closeConfirmationModal(),localStorage.removeItem(ACTIVE_GAME_KEY),ephemeralCustomBid="",ephemeralPoints="",updateState({...DEFAULT_STATE}),confettiTriggered=false},()=>{closeConfirmationModal()})}function handleManualSaveGame(){state.rounds.length&&openSaveGameModal()}function handleFreezeGameModalSubmit(e,t,n){if(!e)return;const o=getLocalStorage("freezerGames");if(o.some(r=>r.name.toLowerCase()===e.toLowerCase()))return;const r=state.rounds[state.rounds.length-1],a=state.rounds.reduce((m,u)=>({us:m.us+u.usPoints,Dem:m.Dem+u.DemPoints}),{us:0,Dem:0});o.push({name:e,usName:t||"",demName:n||"",finalScore:a,lastBid:r?r.bidAmount:null,winner:state.winner,victoryMethod:state.victoryMethod,rounds:state.rounds,timestamp:new Date().toISOString()}),setLocalStorage("freezerGames",o),localStorage.removeItem(ACTIVE_GAME_KEY),ephemeralCustomBid="",ephemeralPoints="",updateState({...DEFAULT_STATE}),confettiTriggered=false}function handleFreezerGame(){state.rounds.length&&openFreezeGameModal()}function handleSaveGameFormSubmit(e){e.preventDefault();const t=document.getElementById("player1Name").value.trim(),n=document.getElementById("player2Name").value.trim();if(!t||!n)return;const o=state.rounds.length?state.rounds[state.rounds.length-1].runningTotals:{us:0,Dem:0},r=getLocalStorage("savedGames");r.push({player1:t,player2:n,rounds:state.rounds,finalScore:o,winner:state.winner,victoryMethod:state.victoryMethod,timestamp:new Date().toISOString()}),setLocalStorage("savedGames",r),localStorage.removeItem(ACTIVE_GAME_KEY),ephemeralCustomBid="",ephemeralPoints="",updateState({...DEFAULT_STATE}),closeSaveGameModal(),confettiTriggered=false}function handleFreezeGameFormSubmit(e){e.preventDefault();const t=document.getElementById("freezeGameName").value.trim(),n=document.getElementById("freezeUsName").value.trim(),o=document.getElementById("freezeDemName").value.trim();handleFreezeGameModalSubmit(t,n,o),closeFreezeGameModal()}function loadFreezerGame(e){const t=getLocalStorage("freezerGames"),n=t[e];n&&openConfirmationModal(`Load the freezer game "${n.name}"? This will overwrite the current game.`,()=>{closeConfirmationModal(),updateState({rounds:n.rounds,gameOver:!!n.winner,winner:n.winner||null,victoryMethod:n.victoryMethod||null,biddingTeam:"",bidAmount:"",showCustomBid:false,customBidValue:"",enterBidderPoints:false,error:"",lastBidAmount:null,lastBidTeam:null}),t.splice(e,1),setLocalStorage("freezerGames",t),closeSavedGamesModal(),saveCurrentGameState(),confettiTriggered=false},()=>{closeConfirmationModal()})}function loadSavedGame(e){const t=getLocalStorage("savedGames"),n=t[e];n&&openConfirmationModal(`Load the completed game between "${n.player1}" and "${n.player2}"? This will overwrite the current game.`,()=>{closeConfirmationModal(),updateState({rounds:n.rounds,gameOver:!!n.winner,winner:n.winner||null,victoryMethod:n.victoryMethod||null,biddingTeam:"",bidAmount:"",showCustomBid:false,customBidValue:"",enterBidderPoints:false,error:"",lastBidAmount:null,lastBidTeam:null}),closeSavedGamesModal(),saveCurrentGameState(),confettiTriggered=false},()=>{closeConfirmationModal()})}function viewSavedGame(e){const t=getLocalStorage("savedGames"),n=t[e];if(!n)return;document.getElementById("savedGamesModal").classList.add("hidden");const o=renderReadOnlyGameDetails(n);document.getElementById("viewSavedGameDetails").innerHTML=o,openViewSavedGameModal()}function closeViewSavedGameModal(){document.getElementById("viewSavedGameModal").classList.add("hidden"),openSavedGamesModal()}function renderReadOnlyGameDetails(e){const{player1:t,player2:n,finalScore:o,rounds:r,winner:a,victoryMethod:i,timestamp:c}=e,l=r.map((s,d)=>{const m="us"===s.biddingTeam?`← (${s.bidAmount})`:`(${s.bidAmount}) →`;return`<div class="grid grid-cols-3 gap-2 p-2 bg-gray-50 rounded-xl dark:bg-gray-700"><div class="text-left text-gray-800 dark:text-gray-100 font-semibold">${s.runningTotals.us}</div><div class="text-center">${m}</div><div class="text-right text-gray-800 dark:text-gray-100 font-semibold">${s.runningTotals.Dem}</div></div>`}).join("");return`<div class="space-y-4"><div><h4 class="text-xl font-bold text-gray-800 dark:text-gray-100">${t} vs ${n}</h4><p class="text-gray-600 dark:text-gray-300 mt-1">Date Played: ${new Date(c).toLocaleString()}</p></div><div><p class="font-semibold text-gray-800 dark:text-gray-100">Final Score:</p><p class="text-gray-700 dark:text-gray-300 mt-1">Us: ${o.us} | Dem: ${o.Dem}</p></div><div><p class="font-semibold text-gray-800 dark:text-gray-100">Winner:</p><p class="text-gray-700 dark:text-gray-300 mt-1">${"us"===a?"Us":"Dem"===a?"Dem":"N/A"}</p></div><div><p class="font-semibold text-gray-800 dark:text-gray-100">Victory Method:</p><p class="text-gray-700 dark:text-gray-300 mt-1">${i||"N/A"}</p></div><div><p class="font-semibold text-gray-800 dark:text-gray-100 mb-2">Round-by-Round History:</p><div class="space-y-2">${l||"<p>No rounds recorded.</p>"}</div></div></div>`}function renderSavedGames(){const e=getLocalStorage("savedGames"),t=document.getElementById("savedGamesList");if(!e.length){t.innerHTML='<p class="text-gray-600 dark:text-gray-300">No completed games available.</p>';return}t.innerHTML=e.map((n,o)=>`<div class="border p-4 rounded-xl shadow-sm bg-gray-50 dark:bg-gray-700"><div class="flex justify-between items-center"><div><p class="font-semibold text-gray-800 dark:text-gray-100">Players:</p><p>${n.player1} vs ${n.player2}</p></div><div class="flex space-x-2"><button onclick="viewSavedGame(${o})" class="text-blue-600 hover:text-blue-800 flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-blue-400 dark:hover:text-blue-600" aria-label="View Saved Game">View</button><button onclick="deleteSavedGame(${o})" class="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 dark:text-red-400 dark:hover:text-red-600" aria-label="Delete Saved Game">${Icons.Trash}</button></div></div><div class="mt-2"><p class="font-semibold text-gray-800 dark:text-gray-100">Final Score:</p><p>Us: ${n.finalScore.us} | Dem: ${n.finalScore.Dem}</p></div><div class="mt-2"><p class="font-semibold text-gray-800 dark:text-gray-100">Victory Method:</p><p>${n.victoryMethod||"N/A"}</p></div><div class="mt-2"><p class="font-semibold text-gray-800 dark:text-gray-100">Date:</p><p>${new Date(n.timestamp).toLocaleString()}</p></div></div>`).join("")}function openViewSavedGameModal(){const e=document.getElementById("viewSavedGameModal");e.classList.remove("hidden"),e.focus()}function closeViewSavedGameModal(){document.getElementById("viewSavedGameModal").classList.add("hidden"),document.getElementById("savedGamesModal").classList.remove("hidden")}function renderFreezerGames(){const e=getLocalStorage("freezerGames"),t=document.getElementById("freezerGamesList");if(!e.length){t.innerHTML='<p class="text-gray-600 dark:text-gray-300">No freezer games available.</p>';return}t.innerHTML=e.map((n,o)=>`<div class="border p-4 rounded-xl shadow-sm bg-gray-50 dark:bg-gray-700"><div class="flex justify-between items-center"><div><p class="font-semibold text-gray-800 dark:text-gray-100">Name:</p><p>${n.name}</p></div><div class="flex space-x-2"><button onclick="loadFreezerGame(${o})" class="text-blue-600 hover:text-blue-800 flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-blue-400 dark:hover:text-blue-600" aria-label="Load Freezer Game">${Icons.Load}Load</button><button onclick="deleteFreezerGame(${o})" class="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 dark:text-red-400 dark:hover:text-red-600" aria-label="Delete Freezer Game">${Icons.Trash}</button></div></div>${n.usName||n.demName?`<div class="mt-2"><p class="font-semibold text-gray-800 dark:text-gray-100">Team Names:</p><p>Us: ${n.usName||"N/A"} | Dem: ${n.demName||"N/A"}</p></div>`:""}<div class="mt-2"><p class="font-semibold text-gray-800 dark:text-gray-100">Final Score:</p><p>Us: ${n.finalScore.us} | Dem: ${n.finalScore.Dem}</p></div><div class="mt-2"><p class="font-semibold text-gray-800 dark:text-gray-100">Last Bid:</p><p>${n.lastBid||"N/A"}</p></div><div class="mt-2"><p class="font-semibold text-gray-800 dark:text-gray-100">Victory Method:</p><p>${n.victoryMethod||"N/A"}</p></div><div class="mt-2"><p class="font-semibold text-gray-800 dark:text-gray-100">Date Frozen:</p><p>${new Date(n.timestamp).toLocaleString()}</p></div></div>`).join("")}function deleteSavedGame(e){deleteGame("savedGames",e,"saved game")}function deleteFreezerGame(e){deleteGame("freezerGames",e,"freezer game")}function renderTeamCard(e,t,n){const o=state.biddingTeam===e,r=o?`bg-${n}-900 text-white`:`bg-${n}-500 text-white`;return`<div class="${r} cursor-pointer hover:${r} transition-colors rounded-xl shadow-md flex items-center justify-center w-32 h-32" onclick="handleTeamClick('${e}')" tabindex="0" role="button" aria-pressed="${o}" aria-label="Select ${"us"===e?"Our Team":"Dem Team"}"><div class="flex flex-col items-center"><h2 class="text-xl font-semibold capitalize">${"us"===e?"Us":"Dem"}</h2><p class="text-2xl font-bold">${t}</p></div></div>`}function renderRoundCard(e,t){return`<div class="bg-white rounded-xl border border-gray-200 shadow flex flex-col items-center justify-center p-4 flex-1 min-w-0 w-48 h-32 dark:bg-gray-800 dark:border-gray-700"><div class="text-center space-y-1"><h2 class="text-xl font-bold text-gray-700 dark:text-gray-100">Round</h2><p class="text-2xl font-extrabold text-gray-900 dark:text-gray-100">${e}</p>${t}</div></div>`}function renderErrorAlert(e){return`<div role="alert" class="flex items-center border border-red-400 rounded-xl p-4 bg-red-50 text-red-700 space-x-3 dark:bg-red-700 dark:border-red-600 dark:text-red-100"><div class="flex-shrink-0">${Icons.AlertCircle}</div><div class="flex-1">${e}</div></div>`}function renderPointsInput(){const{biddingTeam:e,enterBidderPoints:t}=state,n="us"===e?t?"Our Points (Bidding Team)":"Dem Points (Non-Bidding Team)":"Dem"===e&&t?"Dem Points (Bidding Team)":"Our Points (Non-Bidding Team)",o="Dem"===e?"red":"blue",r="Dem"!==e?"red":"blue",a=t?`bg-${o}-600 text-white shadow hover:bg-${o}-700 dark:bg-${o}-700 dark:hover:bg-${o}-800`:`bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-500`,i=!t?`bg-${r}-600 text-white shadow hover:bg-${r}-700 dark:bg-${r}-700 dark:hover:bg-${r}-800`:`bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-500`;return`<div class="space-y-6"><div><label for="pointsToggle" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-200">Enter Points For</label><div class="flex gap-4"><button type="button" class="flex-1 rounded-full px-4 py-2 text-sm font-medium ${a} transition focus:outline-none focus:ring-2 focus:ring-${o}-500 focus:ring-opacity-50" onclick="handleBiddingPointsToggle(true)" aria-pressed="${t}">Bidding Team</button><button type="button" class="flex-1 rounded-full px-4 py-2 text-sm font-medium ${i} transition focus:outline-none focus:ring-2 focus:ring-${r}-500 focus:ring-opacity-50" onclick="handleBiddingPointsToggle(false)" aria-pressed="${!t}">Non-Bidding Team</button></div></div><div><label for="pointsInput" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-200">${n}</label><div class="flex flex-col sm:flex-row sm:items-center sm:gap-4"><input id="pointsInput" type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="360" placeholder="Enter points" class="w-full sm:w-1/2 border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100 dark:focus:ring-blue-400" aria-label="Enter Points"/><button type="submit" class="mt-4 sm:mt-0 bg-blue-600 text-white px-6 py-2 rounded-xl shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-400">Submit</button></div></div></div>`}function renderScoreInputCard(){const{biddingTeam:e,bidAmount:t,customBidValue:n,showCustomBid:o,rounds:r,gameOver:a}=state;if(a||!e)return"";const i=t||o;return`<div class="bg-white border border-gray-200 rounded-lg shadow-lg dark:bg-gray-800 dark:border-gray-700"><div class="border-b border-gray-200 p-5 flex justify-between items-center dark:border-gray-700"><h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Score Input for ${"us"===e?"Our Team":"Dem Team"}</h2><button class="flex items-center border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 hover:bg-gray-200 transition disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700 dark:focus:ring-blue-400" onclick="handleUndo(event)" ${!r.length?"disabled":""} title="Undo Last Round" aria-label="Undo Last Round">${Icons.Undo}Undo</button></div><div class="p-6 score-input-container ${e?"show":""}"><form onsubmit="handleFormSubmit(event)" class="space-y-6"><div><label for="bidAmount" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-200">Bid Amount</label><div class="flex flex-wrap gap-3">${presetBids.map(c=>{const l="other"===c?o:t===String(c),s=l?`bg-blue-600 text-white shadow hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700`:`bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-500`,d="other"===c?"rounded-full":"rounded-lg";return`<button type="button" class="px-4 py-2 text-sm font-medium ${s} ${d} transition focus:outline-none focus:ring-2 focus:ring-blue-500 dark:ring-blue-400" onclick="handleBidSelect('${c}')" aria-pressed="${l}" aria-label="Select Bid ${"other"===c?"Other":c}">${"other"===c?"Other":c}</button>`}).join("")}${o?`<div class="mt-4 flex flex-col sm:flex-row sm:items-center sm:gap-4"><input type="number" inputmode="numeric" pattern="[0-9]*" step="5" value="${n}" onchange="handleCustomBidChange(event)" placeholder="Enter custom bid" class="w-full sm:w-1/2 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100 dark:focus:ring-blue-400" aria-label="Custom Bid Amount"/><span class="text-sm text-gray-500 dark:text-gray-300">Must be divisible by 5 (≤180 or 360)</span></div>`:""}</div></div>${i?renderPointsInput():""}</form></div></div>`}function renderHistoryCard(){const{rounds:e}=state;return`<div class="bg-white border border-gray-200 rounded-xl shadow dark:bg-gray-800 dark:border-gray-700"><div class="border-b border-gray-200 p-4 dark:border-gray-700"><h2 class="text-lg font-bold text-gray-800 dark:text-gray-100">History</h2><div class="grid grid-cols-3 gap-2 pt-3 font-medium text-gray-600 dark:text-gray-300 text-sm sm:text-base"><div class="text-left">Us</div><div class="text-center">Bid</div><div class="text-right">Dem</div></div></div><div class="p-4"><div class="space-y-2">${e.map((t,n)=>{const o="us"===t.biddingTeam?`<span class="text-gray-800 dark:text-gray-100">←</span><span class="ml-1">${t.bidAmount}</span>`:`<span class="mr-1">${t.bidAmount}</span><span class="text-gray-800 dark:text-gray-100">→</span>`;return`<div key="${n}" class="grid grid-cols-3 gap-2 p-2 bg-gray-50 rounded-xl dark:bg-gray-700"><div class="text-left text-gray-800 dark:text-gray-100 font-semibold">${t.runningTotals.us}</div><div class="flex items-center justify-center">${o}</div><div class="text-right text-gray-800 dark:text-gray-100 font-semibold">${t.runningTotals.Dem}</div></div>`}).join("")}</div></div></div>`}function getStatistics(){const e=getLocalStorage("savedGames");if(!e.length)return{totalGames:0,usWins:0,demWins:0,methodCount:{"1000 Point Spread":0,"Set Other Team":0,"Won on Bid":0},averageBid:0};let t=e.length,n=0,o=0,r={"1000 Point Spread":0,"Set Other Team":0,"Won on Bid":0},a=0,i=0;return e.forEach(c=>{c.winner==="us"?n++:c.winner==="Dem"&&o++,c.victoryMethod&&r.hasOwnProperty(c.victoryMethod)&&r[c.victoryMethod]++,c.rounds.forEach(l=>{l.bidAmount&&(a+=l.bidAmount,i++)})}),{totalGames:t,usWins:n,demWins:o,methodCount:r,averageBid:Math.round(a/i/5)*5}}function openStatisticsModal(){const e=getStatistics();let t="";if(!e.totalGames)t=`<p class="text-gray-600 dark:text-gray-300 mt-2">No completed games yet.</p>`;else{const n=Object.entries(e.methodCount).map(([o,r])=>`<div class="flex items-center justify-between py-1 border-b last:border-0 border-gray-200 dark:border-gray-700"><span class="text-gray-700 dark:text-gray-300">${o}</span><span class="font-medium text-gray-800 dark:text-gray-100">${r}</span></div>`).join("");t=`<div class="grid grid-cols-1 sm:grid-cols-2 gap-6"><div class="space-y-2"><div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow-sm"><p class="text-gray-500 dark:text-gray-200 text-sm uppercase font-semibold tracking-wide">Total Games</p><p class="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">${e.totalGames}</p></div><div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow-sm"><p class="text-gray-500 dark:text-gray-200 text-sm uppercase font-semibold tracking-wide">Us Wins</p><p class="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">${e.usWins}</p></div><div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow-sm"><p class="text-gray-500 dark:text-gray-200 text-sm uppercase font-semibold tracking-wide">Dem Wins</p><p class="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">${e.demWins}</p></div></div><div class="space-y-4"><div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow-sm"><p class="text-gray-500 dark:text-gray-200 text-sm uppercase font-semibold tracking-wide">Victory Methods</p><div class="mt-2 space-y-1">${n}</div></div><div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow-sm"><p class="text-gray-500 dark:text-gray-200 text-sm uppercase font-semibold tracking-wide">Average Bid</p><p class="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">${e.averageBid}</p></div></div></div>`}document.getElementById("statisticsModalContent").innerHTML=t,document.getElementById("statisticsModal").classList.remove("hidden")}function closeStatisticsModal(){document.getElementById("statisticsModal").classList.add("hidden"),document.getElementById("statisticsModalContent").innerHTML=""}function renderGameOverOverlay(){if(!state.gameOver)return"";const e=state.winner;return`<div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-md flex items-center justify-center p-4" role="alertdialog" aria-labelledby="gameOverTitle" aria-modal="true"><div class="bg-white w-full max-w-md rounded-xl shadow-lg dark:bg-gray-800"><div class="p-6 text-center"><h2 id="gameOverTitle" class="text-3xl font-bold mb-4 animate-fade-in text-gray-800 dark:text-gray-100 flex items-center justify-center">${Icons.Trophy}Game Over!</h2><p class="text-xl mb-6 animate-fade-in text-gray-700 dark:text-gray-300">${"us"===e?"Our Team Wins!":"Dem Team Wins!"}</p><div class="flex space-x-4 justify-center"><button onclick="handleManualSaveGame()" class="bg-green-600 text-white px-6 py-3 rounded-xl shadow hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition dark:bg-green-500 dark:hover:bg-green-600 dark:focus:ring-green-400">Save Game</button><button onclick="handleNewGame()" class="bg-blue-600 text-white px-6 py-3 rounded-xl shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-400">New Game</button></div></div></div></div>`}function renderApp(){const{error:e,rounds:t,lastBidAmount:n,lastBidTeam:o,gameOver:r}=state,a=t.reduce((l,s)=>({us:l.us+s.usPoints,Dem:l.Dem+s.DemPoints}),{us:0,Dem:0}),i=t.length+1;let c="";if(n&&o){const d="us"===o?"←":"→";c=`<div class="mt-2 flex items-center justify-center space-x-1 text-gray-700 dark:text-gray-300"><span class="font-medium">Bid:</span><span>${n}</span><span>${d}</span></div>`}document.getElementById("app").innerHTML=`
+          <div class="text-center space-y-2">
+            <div class="flex flex-col items-center">
+              <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-800 dark:text-gray-100">Rook!</h1>
             </div>
-            <div class="flex space-x-2">
-              <button onclick="viewSavedGame(${index})" class="text-blue-600 hover:text-blue-800 flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-blue-400 dark:hover:text-blue-600" aria-label="View Saved Game">View</button>
-              <button onclick="deleteSavedGame(${index})" class="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 dark:text-red-400 dark:hover:text-red-600" aria-label="Delete Saved Game">
-                ${Icons.Trash}
-              </button>
-            </div>
+            <p class="text-md sm:text-lg text-gray-600 dark:text-gray-300">Tap a team to start a bid!</p>
           </div>
-          <div class="mt-2">
-            <p class="font-semibold text-gray-800 dark:text-gray-100">Final Score:</p>
-            <p>Us: ${game.finalScore.us} | Dem: ${game.finalScore.Dem}</p>
+          <div class="flex flex-row space-x-4 flex-wrap justify-center">
+            ${renderTeamCard("us",a.us,"blue")}
+            ${renderRoundCard(i,c)}
+            ${renderTeamCard("Dem",a.Dem,"red")}
           </div>
-          <div class="mt-2">
-            <p class="font-semibold text-gray-800 dark:text-gray-100">Victory Method:</p>
-            <p>${game.victoryMethod || "N/A"}</p>
-          </div>
-          <div class="mt-2">
-            <p class="font-semibold text-gray-800 dark:text-gray-100">Date:</p>
-           <p>${new Date(game.timestamp).toLocaleDateString()}</p>
-          </div>
-        </div>
-      `;
-    })
-    .join("");
-}
-
-function openViewSavedGameModal() {
-  const modal = document.getElementById("viewSavedGameModal");
-  modal.classList.remove("hidden");
-  modal.focus();
-}
-
-function closeViewSavedGameModal() {
-  document.getElementById("viewSavedGameModal").classList.add("hidden");
-}
-
-function renderFreezerGames() {
-  const freezerGames = getLocalStorage("freezerGames");
-  const freezerGamesList = document.getElementById("freezerGamesList");
-  if (!freezerGames.length) {
-    freezerGamesList.innerHTML = '<p class="text-gray-600 dark:text-gray-300">No freezer games available.</p>';
-    return;
-  }
-  freezerGamesList.innerHTML = freezerGames
-    .map((fGame, index) => {
-      return `
-        <div class="border p-4 rounded-xl shadow-sm bg-gray-50 dark:bg-gray-700">
-          <div class="flex justify-between items-center">
-            <div>
-              <p class="font-semibold text-gray-800 dark:text-gray-100">Players:</p>
-              <p>${fGame.player1} vs ${fGame.player2}</p>
-            </div>
-            <div class="flex space-x-2">
-              <button onclick="loadFreezerGame(${index})" class="text-blue-600 hover:text-blue-800 flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-blue-400 dark:hover:text-blue-600" aria-label="Load Freezer Game">
-                ${Icons.Load}Load
-              </button>
-              <button onclick="deleteFreezerGame(${index})" class="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 dark:text-red-400 dark:hover:text-red-600" aria-label="Delete Freezer Game">
-                ${Icons.Trash}
-              </button>
-            </div>
-          </div>
-          <div class="mt-2">
-            <p class="font-semibold text-gray-800 dark:text-gray-100">Frozen Score:</p>
-            <p>Us: ${fGame.finalScore.us} | Dem: ${fGame.finalScore.Dem}</p>
-          </div>
-          <div class="mt-2">
-            <p class="font-semibold text-gray-800 dark:text-gray-100">Last Bid:</p>
-            <p>${fGame.lastBid || "N/A"}</p>
-          </div>
-          <div class="mt-2">
-            <p class="font-semibold text-gray-800 dark:text-gray-100">Date Frozen:</p>
-            <p>${new Date(fGame.timestamp).toLocaleDateString()}</p>
-          </div>
-        </div>
-      `;
-    })
-    .join("");
-}
-
-function deleteSavedGame(index) {
-  deleteGame("savedGames", index, "saved game");
-}
-
-function deleteFreezerGame(index) {
-  deleteGame("freezerGames", index, "freezer game");
-}
-
-/* Render functions */
-function renderTeamCard(e,t,a){const r=state.biddingTeam===e,n=r?`bg-${a}-900 text-white`:`bg-${a}-500 text-white`;return`
-            <div class="${n} cursor-pointer
-             hover:${n} transition-colors rounded-xl
-              shadow-md flex flex-auto items-center justify-center  h-32"
-               onclick="handleTeamClick('${e}')" tabindex="0" 
-               role="button" aria-pressed="${r}" aria-label="Select ${"us"===e?"Our Team":"Dem Team"}">
-               <div class="flex flex-col items-center"><h2 class="text-xl font-semibold capitalize">
-                ${"us"===e?"Us":"Dem"}</h2><p class="text-2xl font-bold">${t}</p></div></div>`}
-
-
-                function renderRoundCard(e,t){return`
-                    <div class="bg-white rounded-xl border border-gray-200 
-                    shadow flex flex-auto items-center justify-center p-4 
-                    flex-1 min-w-0  h-32 dark:bg-gray-800 dark:border-gray-700">
-                    <div class="text-center space-y-1"><h2 class="text-xl font-bold 
-                        text-gray-700 dark:text-gray-100">Round</h2><p class="text-2xl 
-                        font-extrabold text-gray-900 dark:text-gray-100">${e}</p>${t}</div></div>`}
-                        function renderErrorAlert(e){return`<div role="alert" class="flex items-center 
-                        border border-red-400 rounded-xl p-4 bg-red-50 text-red-700 space-x-3 dark:bg-red-700 
-                        dark:border-red-600 dark:text-red-100"><div class="flex-shrink-0">${Icons.AlertCircle}
-                            </div><div class="flex-1">${e}</div></div>`}
-
-function renderErrorAlert(errorMessage) {
-  return `
-    <div
-      role="alert"
-      class="flex items-center border border-red-400 rounded-xl p-4 bg-red-50 text-red-700 space-x-3 dark:bg-red-700 dark:border-red-600 dark:text-red-100"
-    >
-      <div class="flex-shrink-0">${Icons.AlertCircle}</div>
-      <div class="flex-1">${errorMessage}</div>
-    </div>
-  `;
-}
-
-function renderPointsInput() {
-    const { biddingTeam, enterBidderPoints } = state;
-    const labelText = (biddingTeam === "us")
-      ? (enterBidderPoints ? "Our Points (Bidding Team)" : "Dem Points (Non-Bidding Team)")
-      : (enterBidderPoints ? "Dem Points (Bidding Team)" : "Our Points (Non-Bidding Team)");
-
-    const biddingColor = (biddingTeam === "Dem") ? "red" : "blue";
-    const nonBiddingColor = (biddingTeam !== "Dem") ? "red" : "blue";
-
-    const biddingButtonClass = enterBidderPoints
-      ? `bg-${biddingColor}-600 text-white shadow hover:bg-${biddingColor}-700 dark:bg-${biddingColor}-700 dark:hover:bg-${biddingColor}-800`
-      : `bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-500`;
-    const nonBiddingButtonClass = !enterBidderPoints
-      ? `bg-${nonBiddingColor}-600 text-white shadow hover:bg-${nonBiddingColor}-700 dark:bg-${nonBiddingColor}-700 dark:hover:bg-${nonBiddingColor}-800`
-      : `bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-500`;
-
-    return `
-      <div class="space-y-6">
-        <div>
-          <label for="pointsToggle" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-200">Enter Points For</label>
-          <div class="flex gap-4">
-            <button type="button"
-                    class="flex-1 rounded-full px-4 py-2 text-sm font-medium ${biddingButtonClass} transition focus:outline-none 
-                           focus:ring-2 focus:ring-${biddingColor}-500 focus:ring-opacity-50"
-                    onclick="handleBiddingPointsToggle(true)" aria-pressed="${enterBidderPoints}">
-              Bidding Team
-            </button>
-            <button type="button"
-                    class="flex-1 rounded-full px-4 py-2 text-sm font-medium ${nonBiddingButtonClass} transition focus:outline-none 
-                           focus:ring-2 focus:ring-${nonBiddingColor}-500 focus:ring-opacity-50"
-                    onclick="handleBiddingPointsToggle(false)" aria-pressed="${!enterBidderPoints}">
-              Non-Bidding Team
-            </button>
-          </div>
-        </div>
-        <div>
-          <label for="pointsInput" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-200">${labelText}</label>
-          <div class="flex flex-col sm:flex-row sm:items-center sm:gap-4">
-            <input id="pointsInput" type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="360"
-                   placeholder="Enter points"
-                   class="w-full sm:w-1/2 border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 
-                          focus:ring-blue-500 transition dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100 
-                          dark:focus:ring-blue-400"
-                   aria-label="Enter Points" />
-            <button type="submit"
-                    class="mt-4 sm:mt-0 bg-blue-600 text-white px-6 py-2 rounded-xl shadow hover:bg-blue-700 focus:outline-none 
-                           focus:ring-2 focus:ring-blue-500 transition dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-400">
-              Submit
-            </button>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-function renderScoreInputCard() {
-  const { biddingTeam, bidAmount, customBidValue, showCustomBid, rounds, gameOver } = state;
-  if (gameOver || !biddingTeam) return "";
-
-  const hasBid = bidAmount || showCustomBid;
-
-  return `
-    <div class="bg-white border border-gray-200 rounded-lg shadow-lg dark:bg-gray-800 dark:border-gray-700">
-      <div class="border-b border-gray-200 p-5 flex justify-between items-center dark:border-gray-700">
-        <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">
-          Score Input for ${biddingTeam === "us" ? "Our Team" : "Dem Team"}
-        </h2>
-        <button
-          class="flex items-center border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 hover:bg-gray-200 transition disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700 dark:focus:ring-blue-400"
-          onclick="handleUndo(event)"
-          ${!rounds.length ? "disabled" : ""}
-          title="Undo Last Round"
-          aria-label="Undo Last Round"
-        >
-          ${Icons.Undo}Undo
-        </button>
-      </div>
-      <div class="p-6 score-input-container ${biddingTeam ? "show" : ""}">
-        <form onsubmit="handleFormSubmit(event)" class="space-y-6">
-          <div>
-            <label for="bidAmount" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-200">Bid Amount</label>
-            <div class="flex flex-wrap gap-3">
-              ${presetBids
-                .map((option) => {
-                  const isSelected = option === "other" ? showCustomBid : bidAmount === String(option);
-                  const btnClasses = isSelected
-                    ? "bg-blue-600 text-white shadow hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700"
-                    : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-200 dark:hover:bg-gray-500";
-                  const roundedClass = option === "other" ? "rounded-full" : "rounded-lg";
-                  return `
-                    <button
-                      type="button"
-                      class="px-4 py-2 text-sm font-medium ${btnClasses} ${roundedClass} transition focus:outline-none focus:ring-2 focus:ring-blue-500 dark:ring-blue-400"
-                      onclick="handleBidSelect('${option}')"
-                      aria-pressed="${isSelected}"
-                      aria-label="Select Bid ${option === "other" ? "Other" : option}"
-                    >
-                      ${option === "other" ? "Other" : option}
-                    </button>
-                  `;
-                })
-                .join("")}
-              ${
-                showCustomBid
-                  ? `
-                  <div class="mt-4 flex flex-col sm:flex-row sm:items-center sm:gap-4">
-                    <input
-                      type="number"
-                      inputmode="numeric"
-                      pattern="[0-9]*"
-                      step="5"
-                      value="${customBidValue}"
-                      onchange="handleCustomBidChange(event)"
-                      placeholder="Enter custom bid"
-                      class="w-full sm:w-1/2 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100 dark:focus:ring-blue-400"
-                      aria-label="Custom Bid Amount"
-                    />
-                    <span class="text-sm text-gray-500 dark:text-gray-300">Must be divisible by 5 (≤180 or 360)</span>
-                  </div>
-                  `
-                  : ""
-              }
-            </div>
-          </div>
-          ${hasBid ? renderPointsInput() : ""}
-        </form>
-      </div>
-    </div>
-  `;
-}
-
-function renderHistoryCard() {
-  const { rounds } = state;
-  return `
-    <div class="bg-white border border-gray-200 rounded-xl shadow dark:bg-gray-800 dark:border-gray-700">
-      <div class="border-b border-gray-200 p-2 dark:border-gray-700">
-        <h2 class="text-lg font-bold text-gray-800 dark:text-gray-100">History</h2>
-        <div class="grid grid-cols-3 gap-2 pt-3 font-medium text-gray-600 dark:text-gray-300 text-sm sm:text-base">
-          <div class="text-left">Us</div>
-          <div class="text-center">Bid</div>
-          <div class="text-right">Dem</div>
-        </div>
-      </div>
-      <div class="p-4">
-        <div class="space-y-2">
-          ${rounds
-            .map((round, idx) => {
-              const bidDisplay =
-                round.biddingTeam === "us"
-                  ? `<span class="text-gray-800 dark:text-gray-100">←</span><span class="ml-1">${round.bidAmount}</span>`
-                  : `<span class="mr-1">${round.bidAmount}</span><span class="text-gray-800 dark:text-gray-100">→</span>`;
-              return `
-                <div key="${idx}" class="grid grid-cols-3 gap-2 p-2 bg-gray-50 rounded-xl dark:bg-gray-700">
-                  <div class="text-left text-gray-800 dark:text-gray-100 font-semibold">${round.runningTotals.us}</div>
-                  <div class="flex items-center justify-center">${bidDisplay}</div>
-                  <div class="text-right text-gray-800 dark:text-gray-100 font-semibold">${round.runningTotals.Dem}</div>
-                </div>
-              `;
-            })
-            .join("")}
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function getStatistics() {
-  const savedGames = getLocalStorage("savedGames");
-  if (!savedGames.length) {
-    return {
-      totalGames: 0,
-      usWins: 0,
-      demWins: 0,
-      methodCount: { "1000 Point Spread": 0, "Set Other Team": 0, "Won on Bid": 0 },
-      averageBid: 0
-    };
-  }
-
-  let totalGames = savedGames.length;
-  let usWins = 0;
-  let demWins = 0;
-  let methodCount = {
-    "1000 Point Spread": 0,
-    "Set Other Team": 0,
-    "Won on Bid": 0
-  };
-  let totalBids = 0;
-  let bidCount = 0;
-
-  savedGames.forEach((game) => {
-    if (game.winner === "us") usWins++;
-    else if (game.winner === "Dem") demWins++;
-    if (game.victoryMethod && methodCount.hasOwnProperty(game.victoryMethod)) {
-      methodCount[game.victoryMethod]++;
-    }
-
-    game.rounds.forEach((round) => {
-      if (round.bidAmount) {
-        totalBids += round.bidAmount;
-        bidCount++;
-      }
-    });
-  });
-
-  return {
-    totalGames,
-    usWins,
-    demWins,
-    methodCount,
-    averageBid: Math.round((totalBids / bidCount) / 5) * 5
-  };
-}
-function openGameOverModal() {
-  document.getElementById("gameOverModal").classList.remove("hidden");
-}
-
-function closeGameOverModal() {
-  document.getElementById("gameOverModal").classList.add("hidden");
-  document.getElementById("gameOverForm").reset();
-}
-
-function handleGameOverFormSubmit(e) {
-  e.preventDefault();
-  const player1Name = document.getElementById("gameOverPlayer1Name").value.trim();
-  const player2Name = document.getElementById("gameOverPlayer2Name").value.trim();
-  if (!player1Name || !player2Name) return;
-
-  const finalScore = state.rounds.length
-    ? state.rounds[state.rounds.length - 1].runningTotals
-    : { us: 0, Dem: 0 };
-  const savedGames = getLocalStorage("savedGames");
-
-  savedGames.push({
-    player1: player1Name,
-    player2: player2Name,
-    rounds: state.rounds,
-    finalScore,
-    winner: state.winner,
-    victoryMethod: state.victoryMethod,
-    timestamp: new Date().toISOString()
-  });
-
-  setLocalStorage("savedGames", savedGames);
-  localStorage.removeItem(ACTIVE_GAME_KEY);
-  ephemeralCustomBid = "";
-  ephemeralPoints = "";
-  updateState({ ...DEFAULT_STATE });
-  closeGameOverModal();
-  confettiTriggered = false;
-}
-
-function renderGameOverOverlay() {
-  if (!state.gameOver) return "";
-  const { winner } = state;
-  return `
-    <div
-      class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-md flex items-center justify-center p-4"
-      role="alertdialog"
-      aria-labelledby="gameOverTitle"
-      aria-modal="true"
-    >
-      <div class="bg-white w-full max-w-md rounded-xl shadow-lg dark:bg-gray-800">
-        <div class="p-6 text-center">
-          <h2
-            id="gameOverTitle"
-            class="text-3xl font-bold mb-4 animate-fade-in text-gray-800 dark:text-gray-100 flex items-center justify-center"
-          >
-            ${Icons.Trophy}Game Over!
-          </h2>
-          <p class="text-xl mb-6 animate-fade-in text-gray-700 dark:text-gray-300">
-            ${winner === "us" ? "Our Team Wins!" : "Dem Team Wins!"}
-          </p>
-          <button
-            onclick="openGameOverModal()"
-            class="bg-blue-600 text-white px-6 py-3 rounded-xl shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-400"
-          >
-            Save Game
-          </button>
-          <button
-            onclick="handleNewGame()"
-            class="bg-gray-300 text-gray-700 px-6 py-3 rounded-xl shadow hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 transition dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 dark:focus:ring-gray-500"
-          >
-            New Game
-          </button>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function renderApp() {
-  const { error, rounds, lastBidAmount, lastBidTeam, gameOver } = state;
-  const currentTotals = rounds.reduce(
-    (acc, round) => {
-      return {
-        us: acc.us + round.usPoints,
-        Dem: acc.Dem + round.DemPoints
-      };
-    },
-    { us: 0, Dem: 0 }
-  );
-  const currentRound = rounds.length + 1;
-
-  let bidInfo = "";
-  if (lastBidAmount && lastBidTeam) {
-    const arrow = lastBidTeam === "us" ? "←" : "→";
-    bidInfo = `
-      <div class="mt-2 flex items-center justify-center space-x-1 text-gray-700 dark:text-gray-300">
-        <span class="font-medium">Bid:</span><span>${lastBidAmount}</span><span>${arrow}</span>
-      </div>
-    `;
-  }
-
-  document.getElementById("app").innerHTML = `
-    <div class="text-center space-y-2">
-      <div class="flex flex-col items-center">
-        <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-800 dark:text-gray-100">Rook!</h1>
-      </div>
-      <p class="text-md sm:text-lg text-gray-600 dark:text-gray-300">Tap a team to start a bid!</p>
-    </div>
-    <div class="card-container">
-      ${renderTeamCard("us", currentTotals.us, "blue")}
-      ${renderRoundCard(currentRound, bidInfo)}
-      ${renderTeamCard("Dem", currentTotals.Dem, "red")}
-    </div>
-    ${error ? `<div>${renderErrorAlert(error)}</div>` : ""}
-    ${renderScoreInputCard()}
-    ${renderHistoryCard()}
-    ${renderGameOverOverlay()}
-  `;
-
-  if (gameOver && !confettiTriggered) {
-    confettiTriggered = true;
-    confetti({
-      particleCount: 200,
-      spread: 70,
-      origin: { y: 0.6 }
-    });
-  }
-}
-
-/* Validation */
-function validateBid(value) {
-  const num = Number(value);
-  if (isNaN(num)) return "Bid must be a number.";
-  if (num <= 0) return "Bid must be greater than zero.";
-  if (num % 5 !== 0) return "Bid must be divisible by 5.";
-  if (num > 360) return "Bid cannot exceed 360.";
-  return "";
-}
-
-function validatePoints(value) {
-  const num = Number(value);
-  if (isNaN(num)) return "Points must be a number.";
-  if (num < 0 || num > 360) return "Points must be between 0 and 360.";
-  return "";
-}
-
-function showEasterEgg() {
-  alert("Moved statistics view into the hamburger menu, added ability to name both teams when freezing a game and general ease of use improvements in version 1.2.2!");
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const gameOverForm = document.getElementById("gameOverForm");
-  if (gameOverForm) {
-    gameOverForm.addEventListener("submit", handleGameOverFormSubmit);
-  }
-
-  // Other existing event listeners...
-});
-
-/* Initialization */
-document.addEventListener("DOMContentLoaded", () => {
-  const closeViewSavedGameModalBtn = document.getElementById("closeViewSavedGameModalBtn");
-  if (closeViewSavedGameModalBtn) {
-    closeViewSavedGameModalBtn.addEventListener("click", closeViewSavedGameModal);
-  }
-  const closeSavedGamesModalBtn = document.getElementById("closeSavedGamesModalBtn");
-  if (closeSavedGamesModalBtn) {
-    closeSavedGamesModalBtn.addEventListener("click", closeSavedGamesModal);
-  }
-  const saveGameForm = document.getElementById("saveGameForm");
-  if (saveGameForm) {
-    saveGameForm.addEventListener("submit", handleSaveGameFormSubmit);
-  }
-  const freezeGameForm = document.getElementById("freezeGameForm");
-  if (freezeGameForm) {
-    freezeGameForm.addEventListener("submit", handleFreezeGameFormSubmit);
-  }
-
-  // Call our setupModalClickOutside for each modal
-  setupModalClickOutside("savedGamesModal", closeSavedGamesModal);
-  setupModalClickOutside("saveGameModal", closeSaveGameModal);
-  setupModalClickOutside("freezeGameModal", closeFreezeGameModal);
-  setupModalClickOutside("confirmationModal", closeConfirmationModal);
-  setupModalClickOutside("viewSavedGameModal", closeViewSavedGameModal);
-  setupModalClickOutside("aboutModal", closeAboutModal);
-  setupModalClickOutside("statisticsModal", closeStatisticsModal);
-
-  loadCurrentGameState();
-  initializeDarkMode();
-  renderApp();
-});
-
-/* Service Worker */
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker
-        .register('service-worker.js')
-        .then(reg => {
-          console.log('Service Worker registered! Scope:', reg.scope);
-        })
-        .catch(err => {
-          console.error('Service Worker registration failed:', err);
-        });
-    });
-  }
-</script>
+          ${e?`<div>${renderErrorAlert(e)}</div>`:""}
+          ${renderScoreInputCard()}
+          ${renderHistoryCard()}
+          ${renderGameOverOverlay()}
+        `,r&&!confettiTriggered&&(confettiTriggered=true,confetti({particleCount:200,spread:70,origin:{y:.6}}))}function validateBid(e){const t=Number(e);return isNaN(t)?"Bid must be a number.":t<=0?"Bid must be greater than zero.":t%5!=0?"Bid must be divisible by 5.":t>360?"Bid cannot exceed 360.":""}function validatePoints(e){const t=Number(e);return isNaN(t)?"Points must be a number.":t%5!=0?"Points must be divisible by 5.":t<0||t>360?"Points must be between 0 and 360.":""}function showVersionNum(){alert("Version 1.2.3! Added two team name fields for freezing games, changed 'New Game' to a yes/no confirmation, and more improvements.")}function openAboutModal(){document.getElementById("aboutModal").classList.remove("hidden")}function closeAboutModal(){document.getElementById("aboutModal").classList.add("hidden")}document.addEventListener("DOMContentLoaded",()=>{const e=document.getElementById("closeViewSavedGameModalBtn");e&&e.addEventListener("click",closeViewSavedGameModal);const t=document.getElementById("closeSavedGamesModalBtn");t&&t.addEventListener("click",closeSavedGamesModal);const n=document.getElementById("saveGameForm");n&&n.addEventListener("submit",handleSaveGameFormSubmit);const o=document.getElementById("freezeGameForm");o&&o.addEventListener("submit",handleFreezeGameFormSubmit);loadCurrentGameState(),initializeDarkMode(),renderApp()});"serviceWorker"in navigator&&window.addEventListener("load",()=>{navigator.serviceWorker.register("service-worker.js").then(e=>{}).catch(e=>{})});</script>
 </body>
 </html>
