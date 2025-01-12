@@ -218,14 +218,52 @@
         display: none;
       }
 
-      /* 3D Hover Effects (used for clickable items) */
+      /*
+        Removed the hover transform so elements do NOT move when hovered.
+      */
       .threed {
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        transition: box-shadow 0.2s ease;
       }
       .threed:hover,
       .threed:focus {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+        /* No movement or scale on hover/focus */
+      }
+
+      /*
+        New sunken-selected class for "Us" & "Dem" cards when selected
+      */
+      .sunken-selected {
+        border-radius: inherit;
+        position: relative;
+  box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.6);
+  /* No transform for no movement */
+  /* transform: none; */
+}
+
+/* The overlay */
+.sunken-selected::after {
+  border-radius: inherit;
+  content: "";
+  position: absolute;
+  inset: 0; /* fill entire card */
+  background: rgba(0, 0, 0, 0.414); 
+  /* or filter: brightness(80%); but see note below */
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Move your content above the overlay */
+.sunken-selected > * {
+  border-radius: inherit;
+  position: relative;
+  z-index: 2;
+}
+      /*
+        Confirmation modal should appear above everything else,
+        including the statistics modal.
+      */
+      #confirmationModal {
+        z-index: 9999; /* higher than stats modal */
       }
 
       /*
@@ -263,18 +301,12 @@
         background-color: var(--primary-color) !important;
         transition: background-color 0.2s ease, filter 0.2s ease;
       }
-      .bg-primary:active {
-        /* darken on click */
-        filter: brightness(85%);
-      }
+    
       .bg-accent {
         background-color: var(--accent-color) !important;
         transition: background-color 0.2s ease, filter 0.2s ease;
       }
-      .bg-accent:active {
-        /* darken on click */
-        filter: brightness(85%);
-      }
+  
       .text-primary {
         color: var(--primary-color) !important;
       }
@@ -587,8 +619,7 @@
       style="-webkit-overflow-scrolling: touch;"
     >
       <div
-        class="relative mx-auto my-8 w-full max-w-4xl bg-white rounded-xl shadow-lg dark:bg-gray-800
-             overflow-hidden max-h-screen overflow-y-auto"
+        class="relative mx-auto my-8 w-full max-w-4xl bg-white rounded-xl shadow-lg dark:bg-gray-800 overflow-y-auto"
       >
         <div class="p-6">
           <h2
@@ -1928,7 +1959,6 @@
       }
 
       /* Render Helpers */
-      // CHANGED: We no longer pass "color" to renderTeamCard. Instead, we use .bg-primary for "us" and .bg-accent for "Dem".
       function renderTeamCard(teamKey, score) {
         const isSelected = state.biddingTeam === teamKey;
         const teamLabel = teamKey === "us" ? "Us" : "Dem";
@@ -1936,12 +1966,16 @@
         // Decide which theme-based class to use
         const colorClass = teamKey === "us" ? "bg-primary" : "bg-accent";
 
-        // Add a ring highlight if this team is selected for bidding
-        const selectedRing = isSelected ? "ring-4 ring-offset-2 ring-yellow-400" : "";
+        // Instead of a ring, use sunken-selected if selected:
+        const selectedEffect = isSelected ? "sunken-selected" : "";
 
+        /*
+          Force text-white to ensure text is always white,
+          regardless of dark or light mode.
+        */
         return `
           <div
-            class="${colorClass} ${selectedRing} threed cursor-pointer transition-colors rounded-xl shadow-md flex flex-col items-center justify-center flex-1 min-w-0 w-32 h-32"
+            class="${colorClass} ${selectedEffect} threed text-white cursor-pointer transition-colors rounded-xl shadow-md flex flex-col items-center justify-center flex-1 min-w-0 w-32 h-32"
             onclick="handleTeamClick('${teamKey}')"
             tabindex="0"
             role="button"
@@ -1991,8 +2025,6 @@
             ? `${state.demTeamName || "Dem"} Points (Bidding)`
             : `${state.usTeamName || "Us"} Points (Non-Bidding)`;
 
-        // Typically "us" => .bg-primary; "Dem" => .bg-accent
-        // We'll keep the button logic as-is, but it's not theme-based for the toggle, that's OK.
         const biddingColor = biddingTeam === "Dem" ? "red" : "blue";
         const nonBiddingColor = biddingTeam !== "Dem" ? "red" : "blue";
 
@@ -2186,13 +2218,9 @@
                   key="${idx}"
                   class="grid grid-cols-3 gap-2 p-2 bg-gray-50 rounded-xl dark:bg-gray-700"
                 >
-                  <div class="text-left text-gray-800 dark:text-gray-100 font-semibold">${
-                    round.runningTotals.us
-                  }</div>
+                  <div class="text-left text-gray-800 dark:text-gray-100 font-semibold">${round.runningTotals.us}</div>
                   <div class="flex items-center justify-center">${arrow}</div>
-                  <div class="text-right text-gray-800 dark:text-gray-100 font-semibold">${
-                    round.runningTotals.Dem
-                  }</div>
+                  <div class="text-right text-gray-800 dark:text-gray-100 font-semibold">${round.runningTotals.Dem}</div>
                 </div>`;
                 })
                 .join("")}
