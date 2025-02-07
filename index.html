@@ -1763,54 +1763,54 @@
       }
 
       function renderReadOnlyGameDetails(game) {
-        const { finalScore, rounds, winner, victoryMethod, timestamp, usTeamName, demTeamName } = game;
-        const roundHtml = rounds
-          .map((r) => {
-            const arrow = r.biddingTeam === "us" ? `← (${r.bidAmount})` : `(${r.bidAmount}) →`;
-            return `
-            <div class="grid grid-cols-3 gap-2 p-2 bg-gray-50 rounded-xl dark:bg-gray-700">
-              <div class="text-left text-gray-800 dark:text-white font-semibold">${r.usPoints}</div>
-              <div class="text-center">${arrow}</div>
-              <div class="text-right text-gray-800 dark:text-white font-semibold">${r.demPoints}</div>
-            </div>`;
-          })
-          .join("");
+  const { finalScore, rounds, winner, victoryMethod, timestamp, usTeamName, demTeamName } = game;
+  const roundHtml = rounds
+    .map((r, index) => {
+      const arrow = r.biddingTeam === "us" ? `← (${r.bidAmount})` : `(${r.bidAmount}) →`;
+      return `
+        <div class="grid grid-cols-3 gap-2 p-2 bg-gray-50 rounded-xl dark:bg-gray-700">
+          <div class="text-left text-gray-800 dark:text-white font-semibold">${r.runningTotals.us}</div>
+          <div class="text-center">${arrow}</div>
+          <div class="text-right text-gray-800 dark:text-white font-semibold">${r.runningTotals.dem}</div>
+        </div>`;
+    })
+    .join("");
 
-        return `
-      <div class="space-y-4">
-        <div>
-          <h4 class="text-xl font-bold text-gray-800 dark:text-white">${usTeamName || "Us"} vs ${demTeamName || "Dem"}</h4>
-          <p class="text-gray-600 dark:text-white mt-1">Date Played: ${new Date(timestamp).toLocaleString()}</p>
+  return `
+    <div class="space-y-4">
+      <div>
+        <h4 class="text-xl font-bold text-gray-800 dark:text-white">${usTeamName || "Us"} vs ${demTeamName || "Dem"}</h4>
+        <p class="text-gray-600 dark:text-white mt-1">Date Played: ${new Date(timestamp).toLocaleString()}</p>
+      </div>
+      <div>
+        <p class="font-semibold text-gray-800 dark:text-white">Final Score:</p>
+        <p class="text-gray-700 dark:text-white mt-1">
+          Us: ${finalScore.us} | Dem: ${finalScore.dem}
+        </p>
+      </div>
+      <div>
+        <p class="font-semibold text-gray-800 dark:text-white">Winner:</p>
+        <p class="text-gray-700 dark:text-white mt-1">${
+          winner === "us" ? (usTeamName || "Us") : winner === "dem" ? (demTeamName || "Dem") : "N/A"
+        }</p>
+      </div>
+      <div>
+        <p class="font-semibold text-gray-800 dark:text-white">Victory Method:</p>
+        <p class="text-gray-700 dark:text-white mt-1">${victoryMethod || "N/A"}</p>
+      </div>
+      <div>
+        <p class="font-semibold text-gray-800 dark:text-white mb-2">Round-by-Round History:</p>
+        <div class="grid grid-cols-3 gap-2 font-semibold text-gray-800 dark:text-white mb-2">
+          <div class="text-left">Us</div>
+          <div class="text-center">Bid</div>
+          <div class="text-right">Dem</div>
         </div>
-        <div>
-          <p class="font-semibold text-gray-800 dark:text-white">Final Score:</p>
-          <p class="text-gray-700 dark:text-white mt-1">
-            Us: ${finalScore.us} | Dem: ${finalScore.dem}
-          </p>
+        <div class="space-y-2">
+          ${roundHtml || "<p>No rounds recorded.</p>"}
         </div>
-        <div>
-          <p class="font-semibold text-gray-800 dark:text-white">Winner:</p>
-          <p class="text-gray-700 dark:text-white mt-1">${
-            winner === "us" ? usTeamName || "Us" : winner === "dem" ? demTeamName || "Dem" : "N/A"
-          }</p>
-        </div>
-        <div>
-          <p class="font-semibold text-gray-800 dark:text-white">Victory Method:</p>
-          <p class="text-gray-700 dark:text-white mt-1">${victoryMethod || "N/A"}</p>
-        </div>
-        <div>
-          <p class="font-semibold text-gray-800 dark:text-white mb-2">Round-by-Round History:</p>
-          <div class="grid grid-cols-3 gap-2 font-semibold text-gray-800 dark:text-white mb-2">
-            <div class="text-left">Us</div>
-            <div class="text-center">Bid</div>
-            <div class="text-right">Dem</div>
-          </div>
-          <div class="space-y-2">
-            ${roundHtml || "<p>No rounds recorded.</p>"}
-          </div>
-        </div>
-      </div>`;
-      }
+      </div>
+    </div>`;
+}
 
       function renderSavedGames() {
         const savedGames = getLocalStorage("savedGames");
@@ -2471,8 +2471,8 @@
         const pointsVal = Number(pointsStr);
         if (isNaN(pointsVal)) return "Points must be a number.";
         if (pointsVal % 5 !== 0) return "Points must be divisible by 5.";
-        if (pointsVal < 0 || pointsVal > 360)
-          return "Points must be between 0 and 360.";
+        if (pointsVal !== 360 && (pointsVal < 0 || pointsVal > 180)) 
+        return "Points must be between 0 and 180, or exactly 360.";
         return "";
       }
 
