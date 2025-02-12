@@ -2,7 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
     <title>Rook Score Taking</title>
     <link rel="manifest" href="manifest.json" />
     <meta name="theme-color" content="#ffffff" />
@@ -113,6 +116,10 @@
         outline: 2px solid #3b82f6;
         outline-offset: 2px;
       }
+      /* Tactile feedback for hamburger on press */
+      .hamburger-menu:active {
+        transform: scale(0.95);
+      }
       .bar {
         position: absolute;
         width: 30px;
@@ -200,6 +207,11 @@
       nav ul li button:hover {
         background-color: #f5f5f5;
         filter: brightness(0.97);
+      }
+      /* Tactile feedback for nav items on press */
+      nav ul li a:active,
+      nav ul li button:active {
+        transform: scale(0.98);
       }
       html.dark nav ul li a,
       html.dark nav ul li button {
@@ -384,6 +396,27 @@
         margin: 1rem auto;
         max-height: calc(100vh - 2rem);
       }
+
+      /* =======================================================
+         TACTILE FEEDBACK ENHANCEMENTS
+         ======================================================= */
+      .hamburger-menu:active {
+        transform: scale(0.95);
+      }
+      nav ul li a:active,
+      nav ul li button:active {
+        transform: scale(0.98);
+      }
+      .clickable {
+        transition: transform 0.1s ease, background-color 0.1s ease;
+      }
+      .clickable:hover {
+        transform: scale(1.02);
+        background-color: rgba(0, 0, 0, 0.05);
+      }
+      .clickable:active {
+        transform: scale(0.98);
+      }
     </style>
   </head>
   <body
@@ -432,7 +465,7 @@
           <button
             id="darkModeToggle"
             onclick="toggleDarkMode(event)"
-            class="flex items-center focus:outline-none"
+            class="flex items-center focus:outline-none threed"
             type="button"
           >
             <span id="darkModeIcon"></span>
@@ -454,9 +487,9 @@
       aria-hidden="true"
     ></div>
 
-    <!-- Version Number Top Right -->
+    <!-- Version Number Top Right (added class "clickable" for tactile feedback) -->
     <div
-      class="absolute top-0 right-0 m-4 p-2 text-gray-800 font-medium text-xs bg-white bg-opacity-70 rounded shadow px-3 py-1 dark:bg-gray-800 dark:text-white"
+      class="absolute top-0 right-0 m-4 p-2 clickable text-gray-800 font-medium text-xs bg-white bg-opacity-70 rounded shadow px-3 py-1 dark:bg-gray-800 dark:text-white"
       style="cursor: pointer"
       onclick="showVersionNum()"
     >
@@ -492,7 +525,7 @@
           </h3>
           <button
             id="closeSavedGamesModalBtn"
-            class="text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white dark:hover:text-gray-300"
+            class="text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white dark:hover:text-gray-300 threed"
             aria-label="Close Saved Games Modal"
             type="button"
           >
@@ -550,14 +583,14 @@
             <button
               type="button"
               id="noModalButton"
-              class="bg-gray-400 text-white px-4 py-2 rounded-xl hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500 dark:bg-gray-400 dark:hover:bg-gray-500 dark:focus:ring-yellow-400"
+              class="bg-gray-400 text-white px-4 py-2 rounded-xl hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500 dark:bg-gray-400 dark:hover:bg-gray-500 dark:focus:ring-yellow-400 threed"
             >
               No
             </button>
             <button
               type="button"
               id="confirmModalButton"
-              class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-red-500 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-red-400"
+              class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-red-500 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-red-400 threed"
             >
               Yes
             </button>
@@ -588,7 +621,7 @@
           </h3>
           <button
             id="closeViewSavedGameModalBtn"
-            class="text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white dark:hover:text-gray-300"
+            class="text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white dark:hover:text-gray-300 threed"
             aria-label="Close View Saved Game Modal"
             type="button"
           >
@@ -655,7 +688,7 @@
             <button
               type="button"
               onclick="closeAboutModal()"
-              class="bg-gray-300 text-gray-700 px-4 py-2 rounded-xl hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-500"
+              class="bg-gray-300 text-gray-700 px-4 py-2 rounded-xl hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-500 threed"
             >
               Close
             </button>
@@ -690,7 +723,7 @@
             <button
               type="button"
               onclick="closeStatisticsModal()"
-              class="bg-gray-300 text-gray-700 px-4 py-2 rounded-xl hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-500"
+              class="bg-gray-300 text-gray-700 px-4 py-2 rounded-xl hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-500 threed"
             >
               Close
             </button>
@@ -758,13 +791,13 @@
               <button
                 type="submit"
                 onclick="event.preventDefault(); closeTeamSelectionModal();"
-                class="bg-gray-400 text-white px-4 py-2 rounded-xl hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-400 dark:hover:bg-gray-600 dark:focus:ring-blue-400"
+                class="bg-gray-400 text-white px-4 py-2 rounded-xl hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-400 dark:hover:bg-gray-600 dark:focus:ring-blue-400 threed"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-400"
+                class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-400 threed"
               >
                 Confirm
               </button>
@@ -832,7 +865,7 @@
           <button
             type="button"
             onclick="closeThemeModal()"
-            class="bg-gray-400 text-white px-4 py-2 rounded-xl hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-500 dark:hover:bg-gray-600 dark:focus:ring-gray-400"
+            class="bg-gray-400 text-white px-4 py-2 rounded-xl hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-500 dark:hover:bg-gray-600 dark:focus:ring-gray-400 threed"
           >
             Close
           </button>
@@ -1645,10 +1678,7 @@
         const freezerName = `FROZEN-${Date.now()}`;
         const freezerGames = getLocalStorage("freezerGames");
         const finalScore = state.rounds.reduce(
-          (acc, r) => ({
-            us: acc.us + r.usPoints,
-            dem: acc.dem + r.demPoints,
-          }),
+          (acc, r) => ({"us": acc.us + r.usPoints, "dem": acc.dem + r.demPoints}),
           { us: 0, dem: 0 }
         );
         const lastRound = state.rounds[state.rounds.length - 1];
@@ -1837,7 +1867,7 @@
                   >
                     View
                   </button>
-              
+                  
                   <button
                     onclick="deleteSavedGame(${i}); event.stopPropagation();"
                     class="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 dark:text-red-300 dark:hover:text-red-500 threed"
@@ -2586,6 +2616,7 @@
           navigator.serviceWorker
             .register("service-worker.js")
             .then((registration) => {})
+
             .catch((err) => {});
         });
       }
