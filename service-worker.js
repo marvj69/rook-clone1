@@ -9,13 +9,17 @@ const urlsToCache = [
   'https://cdn.tailwindcss.com'  // Added Tailwind CDN URL for offline caching
 ];
 
-// Install Event: Caches the specified resources
+// Install Event: Caches the specified resources and forces SW to activate
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('Opened cache');
         return cache.addAll(urlsToCache);
+      })
+      .then(() => {
+        // Force the waiting service worker to become the active service worker
+        return self.skipWaiting();
       })
       .catch((error) => {
         console.error('Failed to cache during install:', error);
@@ -56,7 +60,7 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Activate Event: Cleans up old caches
+// Activate Event: Cleans up old caches and claims clients
 self.addEventListener('activate', (event) => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
@@ -69,5 +73,9 @@ self.addEventListener('activate', (event) => {
           }
         })
       ))
+      .then(() => {
+        // Claim clients so that the new service worker starts controlling them immediately
+        return self.clients.claim();
+      })
   );
 });
