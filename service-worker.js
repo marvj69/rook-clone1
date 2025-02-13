@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rook-cache-v4';
+const CACHE_NAME = 'rook-cache-v1';
 const urlsToCache = [
   '/',
   '/index.html',
