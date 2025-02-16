@@ -3135,14 +3135,24 @@ function handleDeleteTeam(teamName) {
   );
 }
 
-      if ("serviceWorker" in navigator) {
-        window.addEventListener("load", () => {
-          navigator.serviceWorker
-            .register("service-worker.js")
-            .then((registration) => {})
-            .catch((err) => {});
-        });
-      }
+     if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js').then((registration) => {
+    // Check for updates periodically or on page load
+    registration.addEventListener('updatefound', () => {
+      const newWorker = registration.installing;
+      newWorker.addEventListener('statechange', () => {
+        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          // A new service worker is waiting to take over.
+          // Optionally, you can prompt the user or force a reload:
+          if (confirm('A new version is available. Reload now?')) {
+            newWorker.postMessage({ type: 'SKIP_WAITING' });
+            window.location.reload();
+          }
+        }
+      });
+    });
+  });
+}
 
       function updateState(newState) {
         state = { ...state, ...newState };
