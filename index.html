@@ -3135,24 +3135,27 @@ function handleDeleteTeam(teamName) {
   );
 }
 
-     if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/service-worker.js').then((registration) => {
-    // Check for updates periodically or on page load
-    registration.addEventListener('updatefound', () => {
-      const newWorker = registration.installing;
-      newWorker.addEventListener('statechange', () => {
-        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-          // A new service worker is waiting to take over.
-          // Optionally, you can prompt the user or force a reload:
-          if (confirm('A new version is available. Reload now?')) {
-            newWorker.postMessage({ type: 'SKIP_WAITING' });
-            window.location.reload();
-          }
-        }
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then((registration) => {
+        // Listen for updates to the service worker.
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              // New update available – prompt the user or force a reload.
+              if (confirm('A new version of the app is available. Reload now?')) {
+                newWorker.postMessage({ type: 'SKIP_WAITING' });
+                window.location.reload();
+              }
+            }
+          });
+        });
+      })
+      .catch((error) => {
+        console.error('Service worker registration failed:', error);
       });
-    });
-  });
-}
+  }
 
       function updateState(newState) {
         state = { ...state, ...newState };
