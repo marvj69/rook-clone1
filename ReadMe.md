@@ -1,107 +1,112 @@
-# Rook Game Scoring Screen
+# Rook Score Taking
 
-## Overview
-This is a web-based scoring screen for the card game Rook. It allows players to track scores, manage bids, and view game history. The application is designed to be user-friendly and responsive, with support for both light and dark modes.
+Rook Score Taking is a web-based score tracking application designed for the popular card game Rook. It provides an intuitive interface for entering bids, tracking round scores, managing game state (saving, freezing, and resuming games), and viewing team-based statistics. The application also features customizable themes and dark mode for an enhanced user experience.
 
 ## Features
-- **Score Tracking**: Easily track scores for two teams (Us and Dem).
-- **Bid Management**: Manage bids with preset values or custom inputs.
-- **Game History**: View the history of rounds and scores.
-- **Statistics**: View statistics from completed games, including total games, wins, and average bids.
-- **Dark Mode**: Toggle between light and dark themes.
-- **Save and Load Games**: Save current game progress and load saved or frozen games.
-- **Confetti Animation**: Celebrate game victories with a confetti animation.
 
-## Installation
-1. Clone the repository or download the source code.
-2. Open the `index.html` file in your web browser.
+- **Score Input & Tracking**: 
+  - Tap a team ("Us" or "Dem") to initiate a bid.
+  - Select preset bid values or enter a custom bid.
+  - Input round points and submit to update cumulative scores.
+  - Automatic calculation of running totals for each team.
 
-## Usage
-1. **Start a New Game**: Click on the "New Game" option in the menu to start a new game.
-2. **Select a Team**: Tap on the team (Us or Dem) to start a bid.
-3. **Enter Bid**: Choose a bid amount from the preset values or enter a custom bid.
-4. **Enter Points**: Input the points scored by the bidding or non-bidding team.
-5. **Submit**: Submit the points to update the scores and move to the next round.
-6. **View History**: Check the history section to see the details of each round.
-7. **Save Game**: Save the current game progress to continue later.
-8. **Load Game**: Load a previously saved or frozen game.
-9. **View Statistics**: View statistics from completed games, including total games, wins, and average bids.
+- **Game Management**:
+  - **Undo Last Round**: Easily revert the previous round if a mistake is made.
+  - **Save Game**: Save completed games locally using the browser's localStorage.
+  - **Freeze Game**: Freeze a game in progress so you can resume it later.
 
-## Functions
-Here’s a brief explanation of the key functions in the application:
+- **Team & Statistics Management**:
+  - Track individual team statistics (wins, losses, games played, average bid, bid success rate, and hands won percentage).
+  - View a detailed history of completed games and round-by-round scores.
+  - Delete teams and associated data if needed.
 
-### **Game Logic Functions**
-- **`handleTeamClick(team)`**: Handles the selection of a team (Us or Dem) for bidding.
-- **`handleBidSelect(bid)`**: Processes the selection of a bid amount, including custom bids.
-- **`handleCustomBidChange(e)`**: Updates the state when a custom bid value is entered.
-- **`handleBiddingPointsToggle(enterBidderPoints)`**: Toggles between entering points for the bidding or non-bidding team.
-- **`handleFormSubmit(e)`**: Submits the points and updates the game state, including checking for game-over conditions.
-- **`handleUndo()`**: Undoes the last round and reverts the game state.
+- **User Interface Enhancements**:
+  - Responsive design optimized for both mobile and desktop.
+  - Smooth animations and modals for a modern look and feel.
+  - Confetti celebration effect when a game concludes.
 
-### **Game Management Functions**
-- **`handleNewGame()`**: Resets the game state to start a new game, with an option to save the current game.
-- **`handleManualSaveGame()`**: Opens the modal to save the current game manually.
-- **`handleFreezerGame()`**: Opens the modal to freeze the current game.
-- **`handleSaveGameFormSubmit(e)`**: Saves the current game with player names and final scores.
-- **`handleFreezeGameFormSubmit(e)`**: Freezes the current game with a custom name for later retrieval.
+- **Customization Options**:
+  - **Dark Mode**: Toggle between light and dark themes.
+  - **Themes**: Choose from multiple color themes to personalize the app's appearance.
+  - Change team names for a more personalized gaming experience.
 
-### **Modal and UI Functions**
-- **`toggleMenu(e)`**: Toggles the visibility of the side menu.
-- **`closeMenuOverlay()`**: Closes the side menu and its overlay.
-- **`openConfirmationModal(message, yesCallback, noCb, cancelCb)`**: Opens a confirmation modal with custom messages and callbacks.
-- **`closeConfirmationModal()`**: Closes the confirmation modal.
-- **`openSavedGamesModal()`**: Opens the modal to view saved and frozen games.
-- **`closeSavedGamesModal()`**: Closes the saved games modal.
-- **`openSaveGameModal()`**: Opens the modal to save the current game.
-- **`closeSaveGameModal()`**: Closes the save game modal.
-- **`openFreezeGameModal()`**: Opens the modal to freeze the current game.
-- **`closeFreezeGameModal()`**: Closes the freeze game modal.
-- **`openViewSavedGameModal()`**: Opens the modal to view details of a saved game.
-- **`closeViewSavedGameModal()`**: Closes the view saved game modal.
+- **Data Migration**:
+  - Automatic migration of saved game data to new formats when updating the app.
 
-### **Rendering Functions**
-- **`renderApp()`**: Main function to render the entire application UI.
-- **`renderTeamCard(team, points, color)`**: Renders the card for a team with its current score.
-- **`renderRoundCard(roundNumber, lastBidMarkup)`**: Renders the card displaying the current round number and last bid.
-- **`renderErrorAlert(errorText)`**: Renders an error alert message.
-- **`renderPointsInput()`**: Renders the input fields for entering points.
-- **`renderScoreInputCard()`**: Renders the card for entering bids and points.
-- **`renderHistoryCard()`**: Renders the card displaying the game history.
-- **`renderStatisticsCard()`**: Renders the card displaying game statistics.
-- **`renderGameOverOverlay()`**: Renders the game-over overlay with confetti animation.
+- **Progressive Web App (PWA)**:
+  - Service worker support for offline capabilities.
 
-### **Utility Functions**
-- **`toggleDarkMode(e)`**: Toggles between light and dark modes.
-- **`updateDarkModeButton(isDark)`**: Updates the dark mode toggle button based on the current theme.
-- **`initializeDarkMode()`**: Initializes the dark mode based on user preference.
-- **`updateMetaThemeColor(isDark)`**: Updates the theme color meta tag based on the current mode.
-- **`getLocalStorage(key)`**: Retrieves data from local storage.
-- **`setLocalStorage(key, data)`**: Saves data to local storage.
-- **`showSaveIndicator()`**: Displays a "Saved" indicator briefly.
-- **`validateBid(value)`**: Validates the bid amount entered by the user.
-- **`validatePoints(value)`**: Validates the points entered by the user.
-- **`showEasterEgg()`**: Displays an easter egg message with version updates.
+## Getting Started
 
-### **Event Listeners**
-- **`DOMContentLoaded`**: Initializes the application when the DOM is fully loaded.
-- **`Service Worker Registration`**: Registers the service worker for offline functionality.
+### Prerequisites
 
-## Dependencies
-- [Tailwind CSS](https://tailwindcss.com/): A utility-first CSS framework for styling.
-- [Canvas Confetti](https://www.kirilv.com/canvas-confetti/): A JavaScript library for confetti animations.
+- A modern web browser (Chrome, Firefox, Edge, etc.) with support for HTML5, CSS3, and JavaScript.
+- An internet connection to load external libraries (Tailwind CSS and canvas-confetti) or host them locally if preferred.
 
-## Version
-Current Version: **1.2.1**
+### Installation
 
-## License
-This project is open-source and available under the MIT License.
+1. **Clone the Repository** (or download the code):
+   ```bash
+   git clone https://github.com/your-username/rook-score-taking.git
 
-## Contributing
-Contributions are welcome! Please fork the repository and submit a pull request with your changes.
+	2.	Open the Application:
+	•	Simply open the index.html file in your preferred web browser.
+	•	No server setup is required as the app runs entirely in the browser using localStorage for data persistence.
 
-## Issues
-If you encounter any issues, please open an issue on the GitHub repository.
+Usage
+	1.	Starting a Game:
+	•	Tap on one of the team cards (labeled “Us” or “Dem”) to begin a bid.
+	2.	Entering a Bid & Round Score:
+	•	Choose a preset bid (e.g., 120, 125, 130, etc.) or select “Other” to enter a custom bid.
+	•	Input the round points for the bidding and non-bidding teams.
+	•	Press “Submit” to record the round; running totals for both teams are updated automatically.
+	3.	Undo & Game Over:
+	•	Use the Undo button to remove the last recorded round.
+	•	The game will end automatically based on predefined winning conditions (e.g., 1000 point spread, reaching 500 points, etc.), and a confetti animation will celebrate the win.
+	4.	Saving and Freezing Games:
+	•	Save Game: When a game is completed, save it to view later in the Saved Games modal.
+	•	Freeze Game: Freeze an in-progress game to resume it at a later time.
+	5.	Managing Teams & Statistics:
+	•	Access team-based statistics from the menu.
+	•	View overall performance, average bid, win percentages, and more.
+	•	Delete teams and remove associated game data if needed.
+	6.	Customization:
+	•	Toggle Dark Mode using the slider in the menu.
+	•	Change the app’s color theme from the Themes option in the menu.
+	•	Edit team names as needed via the Team Selection modal.
 
-## Acknowledgements
-- [Tailwind CSS](https://tailwindcss.com/) for the CSS framework.
-- [Canvas Confetti](https://www.kirilv.com/canvas-confetti/) for the confetti animation.
+Code Structure
+	•	HTML: The index.html file contains the application’s structure, including the main app container, various modals (e.g., Saved Games, Confirmation, Team Selection, Theme Selection), and version display.
+	•	CSS: Styling is managed via:
+	•	Tailwind CSS (loaded from a CDN) for rapid, responsive design.
+	•	Custom CSS for animations (e.g., fade-in effects), modal transitions, and unique UI elements.
+	•	JavaScript:
+	•	Game Logic & State Management: Functions to handle bidding, score calculation, round submission, undo functionality, and game over detection.
+	•	Local Storage Integration: Saving, freezing, and migrating game data using localStorage.
+	•	Modals & UI Controls: Functions to open/close modals (e.g., Saved Games, About, Confirmation), toggle dark mode, apply themes, and handle team selection.
+	•	Data Migration: A migration function ensures that saved game data from older versions is updated to the new format.
+	•	Service Worker Registration: Enables PWA features for offline usage.
+
+Customization & Extensibility
+	•	Themes & Dark Mode:
+	•	Modify or add new themes by editing the CSS variables and theme classes.
+	•	Dark mode can be toggled via the slider, which updates both the UI and meta theme color.
+	•	Game Logic:
+	•	Adjust scoring logic, bid validation, and win conditions directly within the JavaScript code.
+	•	Local Storage:
+	•	The app uses localStorage to persist game state and statistics. Developers can modify storage keys and migration logic as needed.
+
+Contributing
+
+Contributions are welcome! If you encounter any issues, have suggestions, or wish to improve the code, please feel free to open an issue or submit a pull request.
+
+License
+
+This project is licensed under the MIT License.
+
+Acknowledgments
+	•	Tailwind CSS: For rapid and responsive UI design.
+	•	Canvas-Confetti: For the celebratory confetti animations.
+	•	Special thanks to the developers and the community who inspired this score-taking application for the Rook card game.
+
+This README provides an overview of the project, explains its features, and offers guidance on how to install, run, and customize the application. Enjoy tracking your Rook game scores!
