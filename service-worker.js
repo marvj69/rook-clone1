@@ -9,7 +9,7 @@ const urlsToCache = [
   'https://cdn.tailwindcss.com'  // Tailwind CDN URL for offline caching
 ];
 
-// Install Event: Cache the specified resources and force activation of the new SW
+// Install Event: Cache resources and immediately take over
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -17,10 +17,7 @@ self.addEventListener('install', (event) => {
         console.log('Opened cache:', CACHE_NAME);
         return cache.addAll(urlsToCache);
       })
-      .then(() => {
-        // Force the waiting service worker to become the active service worker immediately
-        return self.skipWaiting();
-      })
+      .then(() => self.skipWaiting())
       .catch((error) => {
         console.error('Failed to cache during install:', error);
       })
@@ -36,15 +33,13 @@ self.addEventListener('fetch', (event) => {
         if (response) {
           return response;
         }
-        // Clone the request as it is a stream
+        // Otherwise fetch from network, cache a clone, and return network response
         const fetchRequest = event.request.clone();
         return fetch(fetchRequest)
           .then((networkResponse) => {
-            // Ensure we received a valid response
             if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
               return networkResponse;
             }
-            // Clone the response as it is a stream
             const responseToCache = networkResponse.clone();
             caches.open(CACHE_NAME)
               .then((cache) => {
@@ -60,7 +55,7 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Activate Event: Delete old caches and immediately claim control of all clients
+// Activate Event: Delete old caches and claim control immediately
 self.addEventListener('activate', (event) => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
@@ -75,9 +70,13 @@ self.addEventListener('activate', (event) => {
           })
         );
       })
-      .then(() => {
-        // Claim clients so that the new service worker starts controlling them immediately
-        return self.clients.claim();
-      })
+      .then(() => self.clients.claim())
   );
+});
+
+// Listen for messages from clients (to skip waiting)
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
