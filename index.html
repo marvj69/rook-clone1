@@ -3143,11 +3143,8 @@ if ('serviceWorker' in navigator) {
           const newWorker = registration.installing;
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              // New update available – prompt the user or force a reload.
-              if (confirm('A new version of the app is available. Reload now?')) {
-                newWorker.postMessage({ type: 'SKIP_WAITING' });
-                window.location.reload();
-              }
+              // New update is available.
+              showUpdateBanner();
             }
           });
         });
@@ -3157,10 +3154,30 @@ if ('serviceWorker' in navigator) {
       });
   }
 
+  function showUpdateBanner() {
+    var banner = document.getElementById('update-banner');
+    if (banner) {
+      banner.style.display = 'block';
+    }
+  }
+
+  // Optional: Allow users to dismiss the banner
+  document.getElementById('dismiss-update-banner').addEventListener('click', function() {
+    var banner = document.getElementById('update-banner');
+    if (banner) {
+      banner.style.display = 'none';
+    }
+  });
+
       function updateState(newState) {
         state = { ...state, ...newState };
         renderApp();
       }
     </script>
+    <!-- Update Available Banner -->
+<div id="update-banner" style="display: none; position: fixed; bottom: 0; left: 0; right: 0; background: #333; color: #fff; padding: 10px; text-align: center; z-index: 1000;">
+  A new version of the app is available. Please close and reopen the app to update.
+  <button id="dismiss-update-banner" style="margin-left: 10px; padding: 5px 10px;">Dismiss</button>
+</div>
   </body>
 </html>
