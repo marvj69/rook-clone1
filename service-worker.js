@@ -1,7 +1,7 @@
 const CACHE_NAME = 'rook-cache-v6';
 const urlsToCache = [
   '/',
-  '/index.html',
+  '/index?v=1.2.1.html',
   '/manifest.json',
   '/service-worker.js',
   '/icons/icon-192x192.png',
