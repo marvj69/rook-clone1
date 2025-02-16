@@ -17,19 +17,10 @@
         darkMode: "class",
       };
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"
+    ></script>
     <style>
-      /* =======================================================
-         ACCESSIBILITY & MOTION PREFERENCES
-         ======================================================= */
-      @media (prefers-reduced-motion: reduce) {
-        * {
-          animation-duration: 0.01ms !important;
-          animation-iteration-count: 1 !important;
-          transition-duration: 0.01ms !important;
-          scroll-behavior: auto !important;
-        }
-      }
       /* Accessibility: keyboard focus outline with better contrast */
       .focus-outline:focus {
         outline: 2px dashed #3182ce;
@@ -431,17 +422,35 @@
             Statistics
           </a>
         </li>
+
+        <!-- CHANGED TO SLIDER SWITCH INSTEAD OF BUTTON -->
         <li>
-          <button
-            id="darkModeToggle"
-            onclick="toggleDarkMode(event)"
-            class="flex items-center focus:outline-none"
-            type="button"
+          <label
+            for="darkModeToggle"
+            class="px-5 py-[15px] border-b border-gray-200 dark:border-gray-600 flex items-center justify-between w-full cursor-pointer text-[20px] hover:bg-gray-100 dark:hover:bg-gray-600"
           >
-            <span id="darkModeIcon"></span>
-            <span id="darkModeLabel" class="ml-2">Dark Mode</span>
-          </button>
+            <span class="text-gray-700 dark:text-white">
+              Dark Mode
+            </span>
+            <div class="relative">
+              <input type="checkbox" id="darkModeToggle" class="sr-only peer" />
+              <div
+                class="w-16 h-8 bg-gray-200 rounded-full dark:bg-gray-700
+                       peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500
+                       peer-checked:bg-gray-1000
+                       after:content-['☀'] dark:after:content-['☾']
+                       after:absolute after:top-1/2 after:left-0
+                       after:bg-white after:border after:border-gray-300 after:rounded-full
+                       after:h-7 after:w-7 after:flex after:items-center after:justify-center after:text-xl after:font-sans
+                       after:text-black
+                       after:transition-transform after:-translate-y-1/2
+                       peer-checked:after:translate-x-[36px]"
+              ></div>
+            </div>
+          </label>
         </li>
+        <!-- END SLIDER SWITCH -->
+
         <!-- NEW Themes Menu Item -->
         <li>
           <a href="#" onclick="openThemeModal(); toggleMenu(event)">
@@ -463,7 +472,7 @@
       style="cursor: pointer"
       onclick="showVersionNum()"
     >
-      <p>version 1.2.7</p>
+      <p>version 1.2.9</p>
     </div>
 
     <!-- Main App Container -->
@@ -638,9 +647,9 @@
             overall wins, average bids, and more.
           </p>
           <p class="text-gray-700 dark:text-white mb-4">
-            <strong>What's New in 1.2.7:</strong>
+            <strong>What's New in 1.2.9:</strong>
             <p>
-              version 1.2.7 introduces a better way to handle team names and statistics. Here’s
+              version 1.2.9 introduces a better way to handle team names and statistics. Here’s
               what’s new:
             </p>
             - Select teams: Team statistics save per team once team names are entered.<br />
@@ -693,7 +702,7 @@
             <button
               type="button"
               onclick="closeStatisticsModal()"
-              class="bg-gray-300 text-gray-700 px-4 py-2 rounded-xl hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-500 dark:hover:bg-gray-600 dark:focus:ring-gray-400"
+              class="bg-gray-300 text-white-700 px-4 py-2 rounded-xl hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-500 dark:hover:bg-gray-600 dark:focus:ring-gray-400"
             >
               Close
             </button>
@@ -845,165 +854,156 @@
 
     <script>
       "use strict";
-      
-    // Increase this version number whenever you make changes to the migration logic.
-const CURRENT_MIGRATION_VERSION = 5;
-const MIGRATION_VERSION_KEY = "rookMigrationVersion";
 
-function performDataMigration() {
-  const currentVersion = localStorage.getItem(MIGRATION_VERSION_KEY);
+      // =========================
+      // DATA MIGRATION
+      // =========================
+      const CURRENT_MIGRATION_VERSION = 3;
+      const MIGRATION_VERSION_KEY = "rookMigrationVersion";
 
-  // If we've already run a migration >= CURRENT_MIGRATION_VERSION, skip.
-  if (currentVersion && parseInt(currentVersion) >= CURRENT_MIGRATION_VERSION) {
-    return;
-  }
+      function performDataMigration() {
+        const currentVersion = localStorage.getItem(MIGRATION_VERSION_KEY);
 
-  // Helper to get/set local storage arrays
-  function getLocalStorage(key) {
-    return JSON.parse(localStorage.getItem(key)) || [];
-  }
-  function setLocalStorage(key, value) {
-    localStorage.setItem(key, JSON.stringify(value));
-  }
+        // If we've already run a migration >= CURRENT_MIGRATION_VERSION, skip.
+        if (currentVersion && parseInt(currentVersion) >= CURRENT_MIGRATION_VERSION) {
+          return;
+        }
 
-  // 1) Migrate savedGames
-  const savedGames = getLocalStorage("savedGames");
-  if (savedGames.length) {
-    const migratedSavedGames = savedGames.map((game) => {
-      // --- (a) Map old player1/player2 to usTeamName/demTeamName
-      if (!game.usTeamName && game.player1) {
-        game.usTeamName = game.player1;
-      }
-      if (!game.demTeamName && game.player2) {
-        game.demTeamName = game.player2;
-      }
-      // Default if still missing
-      game.usTeamName = game.usTeamName || "Us";
-      game.demTeamName = game.demTeamName || "Dem";
+        // Helper to get/set local storage arrays
+        function getLocalStorage(key) {
+          return JSON.parse(localStorage.getItem(key)) || [];
+        }
+        function setLocalStorage(key, value) {
+          localStorage.setItem(key, JSON.stringify(value));
+        }
 
-      // --- (b) Rename finalScore.Dem -> finalScore.dem
-      if (game.finalScore && typeof game.finalScore.Dem !== "undefined") {
-        game.finalScore.dem = game.finalScore.Dem;
-        delete game.finalScore.Dem;
-      }
+        // 1) Migrate savedGames
+        const savedGames = getLocalStorage("savedGames");
+        if (savedGames.length) {
+          const migratedSavedGames = savedGames.map((game) => {
+            // (a) Map old player1/player2 to usTeamName/demTeamName
+            if (!game.usTeamName && game.player1) {
+              game.usTeamName = game.player1;
+            }
+            if (!game.demTeamName && game.player2) {
+              game.demTeamName = game.player2;
+            }
+            // Default if still missing
+            game.usTeamName = game.usTeamName || "Us";
+            game.demTeamName = game.demTeamName || "Dem";
 
-      // --- (c) Rename each round’s DemPoints -> demPoints and runningTotals.Dem -> runningTotals.dem
-      if (Array.isArray(game.rounds)) {
-        game.rounds.forEach((r) => {
-          if (typeof r.DemPoints !== "undefined") {
-            r.demPoints = r.DemPoints;
-            delete r.DemPoints;
+            // (b) Rename finalScore.Dem -> finalScore.dem
+            if (game.finalScore && typeof game.finalScore.Dem !== "undefined") {
+              game.finalScore.dem = game.finalScore.Dem;
+              delete game.finalScore.Dem;
+            }
+
+            // (c) Rename each round’s DemPoints -> demPoints and runningTotals.Dem -> runningTotals.dem
+            if (Array.isArray(game.rounds)) {
+              game.rounds.forEach((r) => {
+                if (typeof r.DemPoints !== "undefined") {
+                  r.demPoints = r.DemPoints;
+                  delete r.DemPoints;
+                }
+                if (r.runningTotals && typeof r.runningTotals.Dem !== "undefined") {
+                  r.runningTotals.dem = r.runningTotals.Dem;
+                  delete r.runningTotals.Dem;
+                }
+              });
+            }
+
+            // (d) Normalize winner to "us" or "dem"
+            if (typeof game.winner === "string") {
+              if (game.winner === game.player1) {
+                game.winner = "us";
+              } else if (game.winner === game.player2) {
+                game.winner = "dem";
+              } else if (game.winner.toLowerCase() === "us") {
+                game.winner = "us";
+              } else if (game.winner.toLowerCase() === "dem") {
+                game.winner = "dem";
+              }
+            }
+
+            return game;
+          });
+
+          setLocalStorage("savedGames", migratedSavedGames);
+        }
+
+        // 2) Migrate freezerGames
+        const freezerGames = getLocalStorage("freezerGames");
+        if (freezerGames.length) {
+          const migratedFreezerGames = freezerGames.map((game) => {
+            if (!game.usName) {
+              game.usName = "Us";
+            }
+            if (!game.demName) {
+              game.demName = "Dem";
+            }
+
+            if (game.finalScore && typeof game.finalScore.Dem !== "undefined") {
+              game.finalScore.dem = game.finalScore.Dem;
+              delete game.finalScore.Dem;
+            }
+
+            if (Array.isArray(game.rounds)) {
+              game.rounds.forEach((r) => {
+                if (typeof r.DemPoints !== "undefined") {
+                  r.demPoints = r.DemPoints;
+                  delete r.DemPoints;
+                }
+                if (r.runningTotals && typeof r.runningTotals.Dem !== "undefined") {
+                  r.runningTotals.dem = r.runningTotals.Dem;
+                  delete r.runningTotals.Dem;
+                }
+              });
+            }
+
+            if (typeof game.winner === "string") {
+              if (game.winner.toLowerCase() === "us") {
+                game.winner = "us";
+              } else if (game.winner.toLowerCase() === "dem") {
+                game.winner = "dem";
+              }
+            }
+
+            return game;
+          });
+
+          setLocalStorage("freezerGames", migratedFreezerGames);
+        }
+
+        // 3) Migrate overall stats to team-based
+        const teams = JSON.parse(localStorage.getItem("teams")) || {};
+        const updatedSavedGames = getLocalStorage("savedGames");
+        updatedSavedGames.forEach((game) => {
+          const usTeam = game.usTeamName || "Us";
+          const demTeam = game.demTeamName || "Dem";
+
+          if (!teams[usTeam]) {
+            teams[usTeam] = { wins: 0, losses: 0, gamesPlayed: 0 };
           }
-          if (r.runningTotals && typeof r.runningTotals.Dem !== "undefined") {
-            r.runningTotals.dem = r.runningTotals.Dem;
-            delete r.runningTotals.Dem;
+          if (!teams[demTeam]) {
+            teams[demTeam] = { wins: 0, losses: 0, gamesPlayed: 0 };
+          }
+
+          teams[usTeam].gamesPlayed++;
+          teams[demTeam].gamesPlayed++;
+
+          if (game.winner === "us") {
+            teams[usTeam].wins++;
+            teams[demTeam].losses++;
+          } else if (game.winner === "dem") {
+            teams[demTeam].wins++;
+            teams[usTeam].losses++;
           }
         });
+        localStorage.setItem("teams", JSON.stringify(teams));
+
+        // 4) Mark we have migrated
+        localStorage.setItem(MIGRATION_VERSION_KEY, CURRENT_MIGRATION_VERSION.toString());
       }
-
-      // --- (d) Normalize winner to "us" or "dem"
-      if (typeof game.winner === "string") {
-        // If the old winner matched player1, call it "us"
-        if (game.winner === game.player1) {
-          game.winner = "us";
-        } else if (game.winner === game.player2) {
-          game.winner = "dem";
-        }
-        // Or if it was literally "Us"/"Dem" in older code
-        else if (game.winner.toLowerCase() === "us") {
-          game.winner = "us";
-        } else if (game.winner.toLowerCase() === "dem") {
-          game.winner = "dem";
-        } else {
-          // If none of the above matched, keep it as is or null out:
-          // game.winner = null;
-        }
-      }
-
-      return game;
-    });
-
-    setLocalStorage("savedGames", migratedSavedGames);
-  }
-
-  // 2) Migrate freezerGames
-  const freezerGames = getLocalStorage("freezerGames");
-  if (freezerGames.length) {
-    const migratedFreezerGames = freezerGames.map((game) => {
-      // The old code may not have stored player1/player2 for freezer, so just default
-      if (!game.usName) {
-        game.usName = "Us";
-      }
-      if (!game.demName) {
-        game.demName = "Dem";
-      }
-
-      // Rename finalScore.Dem -> finalScore.dem
-      if (game.finalScore && typeof game.finalScore.Dem !== "undefined") {
-        game.finalScore.dem = game.finalScore.Dem;
-        delete game.finalScore.Dem;
-      }
-
-      // Rename each round’s DemPoints -> demPoints and runningTotals.Dem -> runningTotals.dem
-      if (Array.isArray(game.rounds)) {
-        game.rounds.forEach((r) => {
-          if (typeof r.DemPoints !== "undefined") {
-            r.demPoints = r.DemPoints;
-            delete r.DemPoints;
-          }
-          if (r.runningTotals && typeof r.runningTotals.Dem !== "undefined") {
-            r.runningTotals.dem = r.runningTotals.Dem;
-            delete r.runningTotals.Dem;
-          }
-        });
-      }
-
-      // If old freezer code stored winner in a different format, normalize similarly:
-      if (typeof game.winner === "string") {
-        if (game.winner.toLowerCase() === "us") {
-          game.winner = "us";
-        } else if (game.winner.toLowerCase() === "dem") {
-          game.winner = "dem";
-        }
-      }
-
-      return game;
-    });
-
-    setLocalStorage("freezerGames", migratedFreezerGames);
-  }
-
-  // 3) Migrate overall stats to team-based
-  //    If your new code uses a `teams` object with { wins, losses, gamesPlayed }, do it here:
-  const teams = JSON.parse(localStorage.getItem("teams")) || {};
-  const updatedSavedGames = getLocalStorage("savedGames"); // read again if changed
-  updatedSavedGames.forEach((game) => {
-    const usTeam = game.usTeamName || "Us";
-    const demTeam = game.demTeamName || "Dem";
-
-    if (!teams[usTeam]) {
-      teams[usTeam] = { wins: 0, losses: 0, gamesPlayed: 0 };
-    }
-    if (!teams[demTeam]) {
-      teams[demTeam] = { wins: 0, losses: 0, gamesPlayed: 0 };
-    }
-
-    teams[usTeam].gamesPlayed++;
-    teams[demTeam].gamesPlayed++;
-
-    if (game.winner === "us") {
-      teams[usTeam].wins++;
-      teams[demTeam].losses++;
-    } else if (game.winner === "dem") {
-      teams[demTeam].wins++;
-      teams[usTeam].losses++;
-    }
-  });
-  localStorage.setItem("teams", JSON.stringify(teams));
-
-  // 4) Mark that we have migrated
-  localStorage.setItem(MIGRATION_VERSION_KEY, CURRENT_MIGRATION_VERSION.toString());
-}
 
       /*
         ====================================================
@@ -1088,6 +1088,11 @@ function performDataMigration() {
         lastBidTeam: null,
         usTeamName: "",
         demTeamName: "",
+        // ----------------------------
+        // Added for timing logic:
+        startTime: null, // timestamp when the first round started or resumed
+        accumulatedTime: 0, // total ms so far (excluding any freeze periods)
+        // ----------------------------
       };
 
       let state = { ...DEFAULT_STATE };
@@ -1100,32 +1105,27 @@ function performDataMigration() {
       let noCallback = null;
       let pendingGameAction = null;
 
-      function toggleDarkMode(e) {
-        e.stopPropagation();
-        const htmlEl = document.documentElement;
-        const isDark = htmlEl.classList.toggle("dark");
-        localStorage.setItem(DARK_MODE_KEY, isDark);
-        updateDarkModeButton(isDark);
-        updateMetaThemeColor(isDark);
-      }
+      // Removed old toggleDarkMode(e) button function
 
-      function updateDarkModeButton(isDark) {
-        const iconEl = document.getElementById("darkModeIcon");
+      // Renamed from updateDarkModeButton -> updateDarkModeLabel
+      function updateDarkModeLabel(isDark) {
         const labelEl = document.getElementById("darkModeLabel");
-        if (iconEl && labelEl) {
-          iconEl.innerHTML = isDark ? Icons.Sun : Icons.Moon;
+        if (labelEl) {
           labelEl.textContent = isDark ? "Light Mode" : "Dark Mode";
         }
       }
 
       function initializeDarkMode() {
         const isDark = JSON.parse(localStorage.getItem(DARK_MODE_KEY));
-        if (isDark) {
-          document.documentElement.classList.add("dark");
-        } else {
-          document.documentElement.classList.remove("dark");
+        document.documentElement.classList.toggle("dark", isDark);
+
+        // Set the checkbox state to match localStorage
+        const darkModeToggleCheckbox = document.getElementById("darkModeToggle");
+        if (darkModeToggleCheckbox) {
+          darkModeToggleCheckbox.checked = isDark;
         }
-        updateDarkModeButton(isDark);
+
+        updateDarkModeLabel(isDark);
         updateMetaThemeColor(isDark);
       }
 
@@ -1136,10 +1136,8 @@ function performDataMigration() {
         }
       }
 
-      const getLocalStorage = (key) =>
-        JSON.parse(localStorage.getItem(key)) || [];
-      const setLocalStorage = (key, value) =>
-        localStorage.setItem(key, JSON.stringify(value));
+      const getLocalStorage = (key) => JSON.parse(localStorage.getItem(key)) || [];
+      const setLocalStorage = (key, value) => localStorage.setItem(key, JSON.stringify(value));
 
       function getTeamsObject() {
         return JSON.parse(localStorage.getItem("teams")) || {};
@@ -1147,6 +1145,7 @@ function performDataMigration() {
       function setTeamsObject(obj) {
         localStorage.setItem("teams", JSON.stringify(obj));
       }
+
       function removeTeamsStatsForGame(game) {
         // Only adjust if team names and a winner are provided
         if (!game.usTeamName || !game.demTeamName || !game.winner) return;
@@ -1182,28 +1181,26 @@ function performDataMigration() {
         }, 1000);
       }
 
-      // --- Updated loadCurrentGameState with team defaults ---
       function loadCurrentGameState() {
         const saved = localStorage.getItem(ACTIVE_GAME_KEY);
         if (saved) {
           try {
             const parsed = JSON.parse(saved);
-            // Apply defaults for team names in the active game state:
             state = {
-              ...DEFAULT_STATE, // Start with a clean default state
+              ...DEFAULT_STATE,
               ...parsed,
-              usTeamName: parsed.usTeamName || "Us", // Use saved name or default
-              demTeamName: parsed.demTeamName || "Dem", // Use saved name or default
+              usTeamName: parsed.usTeamName || "Us",
+              demTeamName: parsed.demTeamName || "Dem",
             };
             renderApp();
           } catch (err) {
             console.error("Error parsing saved game state:", err);
             localStorage.removeItem(ACTIVE_GAME_KEY);
-            state = { ...DEFAULT_STATE }; // Reset to default
+            state = { ...DEFAULT_STATE };
             renderApp();
           }
         } else {
-          state = { ...DEFAULT_STATE }; // Initialize to default if no saved state
+          state = { ...DEFAULT_STATE };
           renderApp();
         }
       }
@@ -1216,28 +1213,66 @@ function performDataMigration() {
           showSaveIndicator();
         }
       }
+      
+      function recalcTeamsStats() {
+  const savedGames = getLocalStorage("savedGames");
+  const teams = {};
 
-      function deleteGame(storageKey, index, descriptor) {
-        const items = getLocalStorage(storageKey);
-        openConfirmationModal(
-          `Are you sure you want to delete this ${descriptor}?`,
-          () => {
-            // If we're deleting a saved game, remove its team stats contributions.
-            if (storageKey === "savedGames") {
-              const game = items[index];
-              removeTeamsStatsForGame(game);
-            }
-            items.splice(index, 1);
-            setLocalStorage(storageKey, items);
-            renderSavedGames();
-            renderFreezerGames();
-            closeConfirmationModal();
-          },
-          () => {
-            closeConfirmationModal();
-          }
-        );
+  savedGames.forEach((game) => {
+    const usTeam = game.usTeamName || "Us";
+    const demTeam = game.demTeamName || "Dem";
+
+    // Initialize the teams if they don't exist yet.
+    if (!teams[usTeam]) {
+      teams[usTeam] = { wins: 0, losses: 0, gamesPlayed: 0 };
+    }
+    if (!teams[demTeam]) {
+      teams[demTeam] = { wins: 0, losses: 0, gamesPlayed: 0 };
+    }
+
+    // Update games played.
+    teams[usTeam].gamesPlayed++;
+    teams[demTeam].gamesPlayed++;
+
+    // Update wins and losses based on the winner.
+    if (game.winner === "us") {
+      teams[usTeam].wins++;
+      teams[demTeam].losses++;
+    } else if (game.winner === "dem") {
+      teams[demTeam].wins++;
+      teams[usTeam].losses++;
+    }
+  });
+
+  setTeamsObject(teams);
+}
+
+function deleteGame(storageKey, index, descriptor) {
+  const items = getLocalStorage(storageKey);
+  openConfirmationModal(
+    `Are you sure you want to delete this ${descriptor}?`,
+    () => {
+      // For saved games, we want to update team stats.
+      if (storageKey === "savedGames") {
+        // Remove the game first.
+        items.splice(index, 1);
+        setLocalStorage(storageKey, items);
+        // Recalculate the teams stats based on the updated list.
+        recalcTeamsStats();
+      } else {
+        // For freezer games (or other types), simply remove.
+        items.splice(index, 1);
+        setLocalStorage(storageKey, items);
       }
+      renderSavedGames();
+      renderFreezerGames();
+      closeConfirmationModal();
+    },
+    () => {
+      closeConfirmationModal();
+    }
+  );
+}
 
       function bringHamburgerToFront() {
         document.getElementById("hamburgerIcon").style.zIndex = "9999";
@@ -1558,10 +1593,17 @@ function performDataMigration() {
         }
         const numericBid = Number(bidAmount);
         const numericPoints = Number(pointsVal);
+
+        // ----- Start the timer if first round -----
+        if (rounds.length === 0 && state.startTime === null) {
+          updateState({ startTime: Date.now() });
+        }
+        // -----------------------------------------
+
         let usEarned = 0;
         let demEarned = 0;
 
-        // Handling of 360 or standard up to 180 logic
+        // 360 check or standard up to 180
         if (numericPoints === 360) {
           if (enterBidderPoints) {
             if (biddingTeam === "us") {
@@ -1598,7 +1640,7 @@ function performDataMigration() {
               demEarned = 180 - numericPoints;
             }
           }
-          // If the bidding team didn't make its bid, they go negative the entire bid
+          // If bidding team didn't make its bid, negative entire bid
           if (biddingTeam === "us") {
             if (usEarned < numericBid) {
               usEarned = -numericBid;
@@ -1610,7 +1652,7 @@ function performDataMigration() {
           }
         }
 
-        // Calculate running totals
+        // Running totals
         const lastTotals = rounds.length
           ? rounds[rounds.length - 1].runningTotals
           : { us: 0, dem: 0 };
@@ -1619,7 +1661,6 @@ function performDataMigration() {
           dem: lastTotals.dem + demEarned,
         };
 
-        // Create the new round object
         const newRound = {
           biddingTeam,
           bidAmount: numericBid,
@@ -1633,7 +1674,7 @@ function performDataMigration() {
         let theWinner = null;
         let victoryMethod = "Won on Bid";
 
-        // Check for game-winning conditions
+        // Win conditions
         if (Math.abs(newTotals.us - newTotals.dem) >= 1000) {
           // 1000 spread
           gameFinished = true;
@@ -1643,7 +1684,7 @@ function performDataMigration() {
           (biddingTeam === "us" && usEarned < 0 && newTotals.dem >= 500) ||
           (biddingTeam === "dem" && demEarned < 0 && newTotals.us >= 500)
         ) {
-          // Bidding team set, other team hits 500
+          // Bidding team set, other hits 500
           gameFinished = true;
           theWinner = biddingTeam === "us" ? "dem" : "us";
           victoryMethod = "Set Other Team";
@@ -1651,7 +1692,7 @@ function performDataMigration() {
           (biddingTeam === "us" && newTotals.us >= 500 && usEarned >= numericBid) ||
           (biddingTeam === "dem" && newTotals.dem >= 500 && demEarned >= numericBid)
         ) {
-          // Bidding team crosses 500 and made the bid
+          // Bidding team crosses 500 & made bid
           gameFinished = true;
           theWinner = newTotals.us > newTotals.dem ? "us" : "dem";
         }
@@ -1660,6 +1701,11 @@ function performDataMigration() {
         ephemeralPoints = "";
 
         if (gameFinished) {
+          // Finalize the accumulated time
+          let finalAccumulated = state.accumulatedTime;
+          if (state.startTime !== null) {
+            finalAccumulated += Date.now() - state.startTime;
+          }
           updateState({
             rounds: updatedRounds,
             gameOver: true,
@@ -1671,8 +1717,10 @@ function performDataMigration() {
             customBidValue: "",
             enterBidderPoints: false,
             error: "",
+            accumulatedTime: finalAccumulated,
+            startTime: null,
           });
-          // Update teams stats if we have team names
+          // Update teams stats
           updateTeamsStatsOnGameEnd(theWinner);
           saveCurrentGameState();
         } else {
@@ -1750,17 +1798,9 @@ function performDataMigration() {
         );
       }
 
-      /*
-        =========================================================
-        IMPORTANT CHANGE:
-        - We REMOVED "updateState({ gameOver: false })" so the
-          "Game Over" overlay remains until the user actually
-          completes team selection and saves the game.
-        =========================================================
-      */
       function handleGameOverSaveClick(e) {
         if (e) e.preventDefault();
-        // Keep the gameOver overlay up, but prompt for team selection:
+        // Prompt user to set team names (if needed), then proceed to manual save
         pendingGameAction = "save";
         openTeamSelectionModal();
       }
@@ -1773,79 +1813,120 @@ function performDataMigration() {
         }
         if (!state.rounds.length) return;
 
-        // If game is over and we have a winner, update team stats again
+        // If game is over and we have a winner, finalize the time
         if (state.gameOver && state.winner) {
+          let finalAccumulated = state.accumulatedTime;
+          if (state.startTime !== null) {
+            finalAccumulated += Date.now() - state.startTime;
+          }
           updateTeamsStatsOnGameEnd(state.winner);
+
+          // Grab final score
+          const lastRound = state.rounds[state.rounds.length - 1];
+          const finalScore =
+            lastRound && lastRound.runningTotals
+              ? lastRound.runningTotals
+              : { us: 0, dem: 0 };
+
+          // Save to "savedGames"
+          const savedGames = getLocalStorage("savedGames");
+          savedGames.push({
+            player1: state.usTeamName || "Us",
+            player2: state.demTeamName || "Dem",
+            rounds: state.rounds,
+            finalScore,
+            winner: state.winner,
+            victoryMethod: state.victoryMethod,
+            timestamp: new Date().toISOString(),
+            playerStats: {
+              player1: {
+                totalPoints: finalScore.us,
+                bids: [],
+                wins: state.winner === "us" ? 1 : 0,
+              },
+              player2: {
+                totalPoints: finalScore.dem,
+                bids: [],
+                wins: state.winner === "dem" ? 1 : 0,
+              },
+            },
+            usTeamName: state.usTeamName || "Us",
+            demTeamName: state.demTeamName || "Dem",
+            // Add the final duration in ms
+            durationMs: finalAccumulated,
+          });
+          setLocalStorage("savedGames", savedGames);
+          showSaveIndicator();
+
+          // Clear active game
+          localStorage.removeItem(ACTIVE_GAME_KEY);
+          ephemeralCustomBid = "";
+          ephemeralPoints = "";
+          updateState({ ...DEFAULT_STATE });
+          confettiTriggered = false;
+        } else {
+          // If the game isn't over but user forcibly saves,
+          // we still record it as a 'completed' game with no winner.
+          let finalAccumulated = state.accumulatedTime;
+          if (state.startTime !== null) {
+            finalAccumulated += Date.now() - state.startTime;
+          }
+
+          const lastRound = state.rounds[state.rounds.length - 1] || {};
+          const finalScore = lastRound.runningTotals || { us: 0, dem: 0 };
+          const savedGames = getLocalStorage("savedGames");
+          savedGames.push({
+            player1: state.usTeamName || "Us",
+            player2: state.demTeamName || "Dem",
+            rounds: state.rounds,
+            finalScore,
+            winner: state.winner,
+            victoryMethod: state.victoryMethod,
+            timestamp: new Date().toISOString(),
+            playerStats: {
+              player1: {
+                totalPoints: finalScore.us,
+                bids: [],
+                wins: state.winner === "us" ? 1 : 0,
+              },
+              player2: {
+                totalPoints: finalScore.dem,
+                bids: [],
+                wins: state.winner === "dem" ? 1 : 0,
+              },
+            },
+            usTeamName: state.usTeamName || "Us",
+            demTeamName: state.demTeamName || "Dem",
+            durationMs: finalAccumulated,
+          });
+          setLocalStorage("savedGames", savedGames);
+          showSaveIndicator();
+
+          localStorage.removeItem(ACTIVE_GAME_KEY);
+          ephemeralCustomBid = "";
+          ephemeralPoints = "";
+          updateState({ ...DEFAULT_STATE });
+          confettiTriggered = false;
         }
-
-        // Grab final score
-        const lastRound = state.rounds[state.rounds.length - 1];
-        const finalScore =
-          lastRound && lastRound.runningTotals
-            ? lastRound.runningTotals
-            : { us: 0, dem: 0 };
-
-        // Save to "savedGames" in localStorage
-        const savedGames = getLocalStorage("savedGames");
-        savedGames.push({
-          player1: state.usTeamName || "Us",
-          player2: state.demTeamName || "Dem",
-          rounds: state.rounds,
-          finalScore,
-          winner: state.winner,
-          victoryMethod: state.victoryMethod,
-          timestamp: new Date().toISOString(),
-          playerStats: {
-            player1: {
-              totalPoints: finalScore.us,
-              bids: [],
-              wins: state.winner === "us" ? 1 : 0,
-            },
-            player2: {
-              totalPoints: finalScore.dem,
-              bids: [],
-              wins: state.winner === "dem" ? 1 : 0,
-            },
-          },
-          usTeamName: state.usTeamName || "Us",
-          demTeamName: state.demTeamName || "Dem",
-        });
-        setLocalStorage("savedGames", savedGames);
-
-        showSaveIndicator();
-        // Clear active game and reset
-        localStorage.removeItem(ACTIVE_GAME_KEY);
-        ephemeralCustomBid = "";
-        ephemeralPoints = "";
-        updateState({ ...DEFAULT_STATE });
-        confettiTriggered = false;
       }
 
       function handleFreezerGame() {
-        if (!state.rounds.length) {
-          alert("No game in progress to freeze.");
-          return;
-        }
-        // If no team names, require them first:
-        if (!state.usTeamName || !state.demTeamName) {
-          pendingGameAction = "freeze";
-          openTeamSelectionModal();
-          return;
-        }
-        openConfirmationModal(
-          "Are you sure you want to freeze this game?",
-          () => {
-            freezeCurrentGame();
-            closeConfirmationModal();
-          },
-          () => {
-            closeConfirmationModal();
-          }
-        );
-      }
+  if (!state.rounds.length) {
+    alert("No game in progress to freeze.");
+    return;
+  }
+  // Always prompt for team names before freezing the game.
+  pendingGameAction = "freeze";
+  openTeamSelectionModal();
+}
 
       function freezeCurrentGame() {
-        const freezerName = `FROZEN-${Date.now()}`;
+        // Pause timer if running
+        let finalAccumulated = state.accumulatedTime;
+        if (state.startTime !== null) {
+          finalAccumulated += Date.now() - state.startTime;
+        }
+
         const freezerGames = getLocalStorage("freezerGames");
         const finalScore = state.rounds.reduce(
           (acc, r) => ({
@@ -1856,7 +1937,7 @@ function performDataMigration() {
         );
         const lastRound = state.rounds[state.rounds.length - 1];
         freezerGames.push({
-          name: freezerName,
+          name: `FROZEN-${Date.now()}`,
           usName: state.usTeamName || "Us",
           demName: state.demTeamName || "Dem",
           finalScore,
@@ -1865,8 +1946,12 @@ function performDataMigration() {
           victoryMethod: state.victoryMethod,
           rounds: state.rounds,
           timestamp: new Date().toISOString(),
+          // Store the accumulated time so we can resume later
+          accumulatedTime: finalAccumulated,
         });
         setLocalStorage("freezerGames", freezerGames);
+
+        // Clear active game
         localStorage.removeItem(ACTIVE_GAME_KEY);
         ephemeralCustomBid = "";
         ephemeralPoints = "";
@@ -1875,63 +1960,64 @@ function performDataMigration() {
       }
 
       function loadFreezerGame(index) {
-  const freezerGames = getLocalStorage("freezerGames");
-  const chosen = freezerGames[index];
-  if (!chosen) return;
+        const freezerGames = getLocalStorage("freezerGames");
+        const chosen = freezerGames[index];
+        if (!chosen) return;
 
-  // If the old freezer game had no real team names, we defaulted to "Us" & "Dem".
-  // Detect that and prompt the user for new names:
-  if (chosen.usName === "Us" && chosen.demName === "Dem") {
-    const newUsName = prompt(
-      "No team names defined for this frozen game. Enter the name for the 'Us' team:",
-      "Team A"
-    );
-    const newDemName = prompt(
-      "Enter the name for the 'Dem' team:",
-      "Team B"
-    );
-    if (newUsName) chosen.usName = newUsName;
-    if (newDemName) chosen.demName = newDemName;
+        // If the old freezer game had no real team names, prompt user
+        if (chosen.usName === "Us" && chosen.demName === "Dem") {
+          const newUsName = prompt(
+            "No team names defined for this frozen game. Enter the name for the 'Us' team:",
+            "Team A"
+          );
+          const newDemName = prompt(
+            "Enter the name for the 'Dem' team:",
+            "Team B"
+          );
+          if (newUsName) chosen.usName = newUsName;
+          if (newDemName) chosen.demName = newDemName;
 
-    // Save the updated data
-    freezerGames[index] = chosen;
-    setLocalStorage("freezerGames", freezerGames);
-  }
+          freezerGames[index] = chosen;
+          setLocalStorage("freezerGames", freezerGames);
+        }
 
-  // Now proceed with your existing confirmation and load logic:
-  openConfirmationModal(
-    `Load the freezer game "${chosen.name}"? This will overwrite the current game.`,
-    () => {
-      closeConfirmationModal();
-      // Populate current state with the freezer game data
-      updateState({
-        rounds: chosen.rounds,
-        gameOver: !!chosen.winner,
-        winner: chosen.winner || null,
-        victoryMethod: chosen.victoryMethod || null,
-        biddingTeam: "",
-        bidAmount: "",
-        showCustomBid: false,
-        customBidValue: "",
-        enterBidderPoints: false,
-        error: "",
-        lastBidAmount: null,
-        lastBidTeam: null,
-        // Use the (possibly updated) names
-        usTeamName: chosen.usName || "Us",
-        demTeamName: chosen.demName || "Dem",
-      });
-      // Remove from freezer if you do that by design
-      freezerGames.splice(index, 1);
-      setLocalStorage("freezerGames", freezerGames);
+        openConfirmationModal(
+          `Load the freezer game "${chosen.name}"? This will overwrite the current game.`,
+          () => {
+            closeConfirmationModal();
 
-      closeSavedGamesModal();
-      saveCurrentGameState();
-      confettiTriggered = false;
-    },
-    () => closeConfirmationModal()
-  );
-}
+            // We'll resume the timer if no winner
+            const isOver = !!chosen.winner;
+            updateState({
+              rounds: chosen.rounds,
+              gameOver: isOver,
+              winner: chosen.winner || null,
+              victoryMethod: chosen.victoryMethod || null,
+              biddingTeam: "",
+              bidAmount: "",
+              showCustomBid: false,
+              customBidValue: "",
+              enterBidderPoints: false,
+              error: "",
+              lastBidAmount: null,
+              lastBidTeam: null,
+              usTeamName: chosen.usName || "Us",
+              demTeamName: chosen.demName || "Dem",
+              accumulatedTime: chosen.accumulatedTime || 0,
+              startTime: isOver ? null : Date.now(), // resume if not over
+            });
+
+            // Remove from freezer if we do that
+            freezerGames.splice(index, 1);
+            setLocalStorage("freezerGames", freezerGames);
+
+            closeSavedGamesModal();
+            saveCurrentGameState();
+            confettiTriggered = false;
+          },
+          () => closeConfirmationModal()
+        );
+      }
 
       function loadSavedGame(index) {
         const savedGames = getLocalStorage("savedGames");
@@ -1941,7 +2027,6 @@ function performDataMigration() {
           "Load this completed game? This will overwrite the current game.",
           () => {
             closeConfirmationModal();
-            // Use saved team names or defaults:
             updateState({
               rounds: chosen.rounds,
               gameOver: !!chosen.winner,
@@ -1957,6 +2042,9 @@ function performDataMigration() {
               lastBidTeam: null,
               usTeamName: chosen.usTeamName || "Us",
               demTeamName: chosen.demTeamName || "Dem",
+              // A saved (completed) game won't be resumed, so no startTime
+              startTime: null,
+              accumulatedTime: chosen.durationMs || 0,
             });
             closeSavedGamesModal();
             saveCurrentGameState();
@@ -1989,8 +2077,39 @@ function performDataMigration() {
         document.getElementById("savedGamesModal").classList.remove("hidden");
       }
 
+      // Helper to format a duration in ms to H:MM:SS or M:SS
+      function formatDuration(ms) {
+        const totalSeconds = Math.floor(ms / 1000);
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        // If there's an hour, show H:MM:SS; else M:SS
+        if (hours > 0) {
+          return (
+            hours +
+            ":" +
+            (minutes < 10 ? "0" : "") +
+            minutes +
+            ":" +
+            (seconds < 10 ? "0" : "") +
+            seconds
+          );
+        } else {
+          return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+        }
+      }
+
       function renderReadOnlyGameDetails(game) {
-        const { finalScore, rounds, winner, victoryMethod, timestamp, usTeamName, demTeamName } = game;
+        const {
+          finalScore,
+          rounds,
+          winner,
+          victoryMethod,
+          timestamp,
+          usTeamName,
+          demTeamName,
+          durationMs,
+        } = game;
         const roundHtml = rounds
           .map((r, index) => {
             const arrow = r.biddingTeam === "us" ? `← (${r.bidAmount})` : `(${r.bidAmount}) →`;
@@ -2026,6 +2145,12 @@ function performDataMigration() {
               <p class="text-gray-700 dark:text-white mt-1">${victoryMethod || "N/A"}</p>
             </div>
             <div>
+              <p class="font-semibold text-gray-800 dark:text-white">Duration:</p>
+              <p class="text-gray-700 dark:text-white mt-1">
+                ${durationMs ? formatDuration(durationMs) : "N/A"}
+              </p>
+            </div>
+            <div>
               <p class="font-semibold text-gray-800 dark:text-white mb-2">Round-by-Round History:</p>
               <div class="grid grid-cols-3 gap-2 font-semibold text-gray-800 dark:text-white mb-2">
                 <div class="text-left">Us</div>
@@ -2051,87 +2176,147 @@ function performDataMigration() {
 
         container.innerHTML = savedGames
           .map((g, i) => {
-            // Final scores
             const usScore = g.finalScore.us;
             const demScore = g.finalScore.dem;
-
-            // Determine which team won
             const usIsWinner = g.winner === "us";
             const demIsWinner = g.winner === "dem";
 
-            // Color classes for winners vs. losers
-            const usColorClass = usIsWinner ? "text-green-400" : "text-red-400";
-            const demColorClass = demIsWinner ? "text-green-400" : "text-red-400";
+            let topTeamHTML = "";
+            let bottomTeamHTML = "";
 
-            // Format date
+            if (usIsWinner) {
+              topTeamHTML = `
+                <div class="flex flex-col space-y-1">
+                  <span class="font-semibold text-gray-800 dark:text-white">
+                    Winner
+                  </span>
+                  <div class="flex items-center space-x-2">
+                    <span class="text-green-400 font-semibold">
+                      ${g.usTeamName || "Us"}
+                    </span>
+                    <span class="text-green-400 font-semibold">
+                      ${usScore} points
+                    </span>
+                  </div>
+                </div>
+              `;
+              bottomTeamHTML = `
+                <div class="flex items-center space-x-2">
+                  <span class="text-red-400 font-semibold">
+                    ${g.demTeamName || "Dem"}
+                  </span>
+                  <span class="text-red-400 font-semibold">
+                    ${demScore} points
+                  </span>
+                </div>
+              `;
+            } else if (demIsWinner) {
+              topTeamHTML = `
+                <div class="flex flex-col space-y-1">
+                  <span class="font-semibold text-gray-800 dark:text-white">
+                    Winner
+                  </span>
+                  <div class="flex items-center space-x-2">
+                    <span class="text-green-400 font-semibold">
+                      ${g.demTeamName || "Dem"}
+                    </span>
+                    <span class="text-green-400 font-semibold">
+                      ${demScore} points
+                    </span>
+                  </div>
+                </div>
+              `;
+              bottomTeamHTML = `
+                <div class="flex items-center space-x-2">
+                  <span class="text-red-400 font-semibold">
+                    ${g.usTeamName || "Us"}
+                  </span>
+                  <span class="text-red-400 font-semibold">
+                    ${usScore} points
+                  </span>
+                </div>
+              `;
+            } else {
+              topTeamHTML = `
+                <div class="flex items-center space-x-2">
+                  <span class="text-gray-400 font-semibold">
+                    ${g.usTeamName || "Us"}
+                  </span>
+                  <span class="text-gray-400 font-semibold">
+                    ${usScore} points
+                  </span>
+                </div>
+              `;
+              bottomTeamHTML = `
+                <div class="flex items-center space-x-2">
+                  <span class="text-gray-400 font-semibold">
+                    ${g.demTeamName || "Dem"}
+                  </span>
+                  <span class="text-gray-400 font-semibold">
+                    ${demScore} points
+                  </span>
+                </div>
+              `;
+            }
+
             const gameDate = new Date(g.timestamp).toLocaleString();
 
+            // Duration
+            const durationMarkup = `
+              <div>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Duration</p>
+                <p class="text-base">${g.durationMs ? formatDuration(g.durationMs) : "N/A"}</p>
+              </div>
+            `;
+
             return `
-              <!-- Outer Card Container -->
-              <div class="bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white p-4 rounded-xl shadow-md mb-4 cursor-pointer" onclick="viewSavedGame(${i})">
-                
-                <!-- Header Row with Title and Action Buttons -->
+              <div
+                class="bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white p-4 rounded-xl shadow-md mb-4 cursor-pointer"
+                onclick="viewSavedGame(${i})"
+              >
                 <div class="flex justify-between items-center mb-4">
                   <div class="flex items-center">
                     <span class="mr-2">${Icons.Trophy}</span>
                     <h2 class="text-xl font-bold">Game Summary</h2>
                   </div>
                   <div class="flex space-x-2">
-                    <button onclick="viewSavedGame(${i}); event.stopPropagation();" 
-                            class="text-blue-600 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-blue-300 dark:hover:text-blue-400"
-                            aria-label="View Saved Game" type="button">
+                    <button
+                      onclick="viewSavedGame(${i}); event.stopPropagation();"
+                      class="text-blue-600 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-blue-300 dark:hover:text-blue-400"
+                      aria-label="View Saved Game"
+                      type="button"
+                    >
                       View
                     </button>
-                    <button onclick="deleteSavedGame(${i}); event.stopPropagation();" 
-                            class="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 dark:text-red-300 dark:hover:text-red-500"
-                            aria-label="Delete Saved Game" type="button">
+                    <button
+                      onclick="deleteSavedGame(${i}); event.stopPropagation();"
+                      class="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 dark:text-red-300 dark:hover:text-red-500"
+                      aria-label="Delete Saved Game"
+                      type="button"
+                    >
                       ${Icons.Trash}
                     </button>
                   </div>
                 </div>
 
-                <!-- Teams Box -->
                 <div class="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 mb-4">
                   <p class="text-sm text-gray-500 dark:text-gray-400">Teams</p>
-                  <div class="flex flex-wrap sm:flex-nowrap justify-between items-center mt-2">
-                    <!-- "Us" team -->
-                    <div class="flex items-center space-x-2">
-                      <span class="${usColorClass} font-semibold">
-                        ${g.usTeamName || "Us"}
-                      </span>
-                      <span class="${usColorClass} font-semibold">
-                        ${usScore} points
-                      </span>
-                    </div>
-
-                    <!-- VS Label -->
-                    <span class="text-gray-400 dark:text-gray-300 mx-2">vs</span>
-
-                    <!-- "Dem" team -->
-                    <div class="flex items-center space-x-2">
-                      <span class="${demColorClass} font-semibold">
-                        ${g.demTeamName || "Dem"}
-                      </span>
-                      <span class="${demColorClass} font-semibold">
-                        ${demScore} points
-                      </span>
-                    </div>
+                  <div class="flex flex-col space-y-2 mt-2">
+                    ${topTeamHTML}
+                    ${bottomTeamHTML}
                   </div>
                 </div>
 
-                <!-- Victory Method & Date -->
                 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                  <!-- Victory Method -->
                   <div>
                     <p class="text-sm text-gray-500 dark:text-gray-400">Victory Method</p>
                     <p class="text-base">${g.victoryMethod || "N/A"}</p>
                   </div>
-
-                  <!-- Date -->
                   <div>
                     <p class="text-sm text-gray-500 dark:text-gray-400">Date</p>
                     <p class="text-base">${gameDate}</p>
                   </div>
+                  ${durationMarkup}
                 </div>
               </div>
             `;
@@ -2151,11 +2336,9 @@ function performDataMigration() {
 
         container.innerHTML = freezerGames
           .map((f, i) => {
-            // Final scores
             const usScore = f.finalScore.us;
             const demScore = f.finalScore.dem;
 
-            // Default color if no winner yet; otherwise, set winner/loser colors
             let usColorClass = "text-gray-400";
             let demColorClass = "text-gray-400";
             if (f.winner === "us") {
@@ -2166,14 +2349,11 @@ function performDataMigration() {
               demColorClass = "text-green-400";
             }
 
-            // Format date for when the game was frozen
             const dateFrozen = new Date(f.timestamp).toLocaleString();
 
             return `
-              <!-- Outer Card Container -->
               <div class="bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white p-4 rounded-xl shadow-md mb-4 cursor-pointer" onclick="loadFreezerGame(${i})">
                 
-                <!-- Header Row with Title and Action Buttons -->
                 <div class="flex justify-between items-center mb-4">
                   <div class="flex items-center">
                     <span class="mr-2">${Icons.Trophy}</span>
@@ -2193,14 +2373,12 @@ function performDataMigration() {
                   </div>
                 </div>
 
-                <!-- Teams Box -->
                 <div class="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 mb-4">
                   <p class="text-sm text-gray-500 dark:text-gray-400">
                     ${f.name ? `Name: ${f.name}` : "Frozen Game"}
                   </p>
                   <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Teams</p>
                   <div class="flex flex-wrap sm:flex-nowrap justify-between items-center mt-2">
-                    <!-- "Us" team -->
                     <div class="flex items-center space-x-2">
                       <span class="${usColorClass} font-semibold">
                         ${f.usName || "Us"}
@@ -2209,11 +2387,7 @@ function performDataMigration() {
                         ${usScore} points
                       </span>
                     </div>
-
-                    <!-- VS Label -->
                     <span class="text-gray-400 dark:text-gray-300 mx-2">vs</span>
-
-                    <!-- "Dem" team -->
                     <div class="flex items-center space-x-2">
                       <span class="${demColorClass} font-semibold">
                         ${f.demName || "Dem"}
@@ -2225,21 +2399,15 @@ function performDataMigration() {
                   </div>
                 </div>
 
-                <!-- Victory Method, Last Bid & Date Frozen -->
                 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                  <!-- Victory Method -->
                   <div>
                     <p class="text-sm text-gray-500 dark:text-gray-400">Victory Method</p>
                     <p class="text-base">${f.victoryMethod || "N/A"}</p>
                   </div>
-
-                  <!-- Last Bid -->
                   <div>
                     <p class="text-sm text-gray-500 dark:text-gray-400">Last Bid</p>
                     <p class="text-base">${f.lastBid || "N/A"}</p>
                   </div>
-
-                  <!-- Date Frozen -->
                   <div>
                     <p class="text-sm text-gray-500 dark:text-gray-400">Date Frozen</p>
                     <p class="text-base">${dateFrozen}</p>
@@ -2316,7 +2484,6 @@ function performDataMigration() {
             ? `${state.demTeamName || "Dem"} Points (Bidding)`
             : `${state.usTeamName || "Us"} Points (Non-Bidding)`;
 
-        // For color styling of the toggle buttons
         const biddingColor = biddingTeam === "dem" ? "red" : "blue";
         const nonBiddingColor = biddingTeam !== "dem" ? "red" : "blue";
 
@@ -2496,198 +2663,6 @@ function performDataMigration() {
           </div>`;
       }
 
-      function getStatistics() {
-        const savedGames = getLocalStorage("savedGames");
-        const teams = getTeamsObject();
-        if (!savedGames.length && !Object.keys(teams).length) {
-          return {
-            totalGames: 0,
-            usWins: 0,
-            demWins: 0,
-            methodCount: {
-              "1000 Point Spread": 0,
-              "Set Other Team": 0,
-              "Won on Bid": 0,
-            },
-            averageBid: 0,
-            teamsData: [],
-          };
-        }
-        let totalGames = savedGames.length;
-        let usWins = 0;
-        let demWins = 0;
-        let methodCount = {
-          "1000 Point Spread": 0,
-          "Set Other Team": 0,
-          "Won on Bid": 0,
-        };
-        let bidSum = 0;
-        let bidCount = 0;
-
-        savedGames.forEach((game) => {
-          if (game.winner === "us") usWins++;
-          else if (game.winner === "dem") demWins++;
-          if (game.victoryMethod && methodCount.hasOwnProperty(game.victoryMethod)) {
-            methodCount[game.victoryMethod]++;
-          }
-          game.rounds.forEach((r) => {
-            if (r.bidAmount) {
-              bidSum += r.bidAmount;
-              bidCount++;
-            }
-          });
-        });
-
-        let averageBid = 0;
-        if (bidCount) {
-          const rawAvg = bidSum / bidCount;
-          // Round average to nearest 5
-          averageBid = Math.round(rawAvg / 5) * 5;
-        }
-        const teamsData = Object.entries(teams).map(([teamName, stats]) => {
-          const winPercent =
-            stats.gamesPlayed > 0 ? ((stats.wins / stats.gamesPlayed) * 100).toFixed(2) : 0;
-          return {
-            name: teamName,
-            wins: stats.wins,
-            losses: stats.losses,
-            gamesPlayed: stats.gamesPlayed,
-            winPercent,
-          };
-        });
-
-        return {
-          totalGames,
-          usWins,
-          demWins,
-          methodCount,
-          averageBid,
-          teamsData,
-        };
-      }
-
-      function handleDeleteTeam(teamName) {
-        openConfirmationModal(
-          `Are you sure you want to delete the team "${teamName}"?`,
-          () => {
-            const teams = getTeamsObject();
-            delete teams[teamName];
-            setTeamsObject(teams);
-            closeConfirmationModal();
-            openStatisticsModal();
-          },
-          () => {
-            closeConfirmationModal();
-          }
-        );
-      }
-
-      function openStatisticsModal() {
-        const stats = getStatistics();
-        let content = "";
-        if (!stats.totalGames && !stats.teamsData.length) {
-          content = '<p class="text-gray-600 dark:text-white mt-2">No completed games and no teams yet.</p>';
-        } else {
-          const methodRows = Object.entries(stats.methodCount)
-            .map(([method, count]) => {
-              return `
-                <div class="flex items-center justify-between py-1 border-b last:border-0 border-gray-200 dark:border-gray-700">
-                  <span class="text-gray-700 dark:text-white">${method}</span>
-                  <span class="font-medium text-gray-800 dark:text-white">${count}</span>
-                </div>`;
-            })
-            .join("");
-
-          const teamRows = stats.teamsData
-            .map((team) => {
-              return `
-                <tr class="border-b dark:border-gray-700">
-                  <td class="px-4 py-2 whitespace-nowrap text-gray-700 dark:text-white">
-                    ${team.name}
-                    <button
-                      onclick="handleDeleteTeam('${team.name}'); event.stopPropagation();"
-                      class="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 dark:text-red-300 dark:hover:text-red-500 ml-2 threed"
-                      aria-label="Delete Team"
-                      type="button"
-                    >
-                      ${Icons.Trash}
-                    </button>
-                  </td>
-                  <td class="px-4 py-2 text-center text-gray-700 dark:text-white">${team.gamesPlayed}</td>
-                  <td class="px-4 py-2 text-center text-gray-700 dark:text-white">${team.winPercent}%</td>
-                  <td class="px-4 py-2 text-center text-green-600 dark:text-green-400">${team.wins}</td>
-                  <td class="px-4 py-2 text-center text-red-600 dark:text-red-300">${team.losses}</td>
-                </tr>`;
-            })
-            .join("");
-
-          let topRow = "";
-          if (stats.totalGames > 0) {
-            topRow = `
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-                <div class="space-y-2">
-                  <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow-sm">
-                    <p class="text-gray-500 dark:text-white text-sm uppercase font-semibold tracking-wide">Total Completed Games</p>
-                    <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-white">${stats.totalGames}</p>
-                  </div>
-                  <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow-sm">
-                    <p class="text-gray-500 dark:text-white text-sm uppercase font-semibold tracking-wide">Us Wins (All Completed)</p>
-                    <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-white">${stats.usWins}</p>
-                  </div>
-                  <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow-sm">
-                    <p class="text-gray-500 dark:text-white text-sm uppercase font-semibold tracking-wide">Dem Wins (All Completed)</p>
-                    <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-white">${stats.demWins}</p>
-                  </div>
-                </div>
-                <div class="space-y-4">
-                  <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow-sm">
-                    <p class="text-gray-500 dark:text-white text-sm uppercase font-semibold tracking-wide">Victory Methods</p>
-                    <div class="mt-2 space-y-1">
-                      ${methodRows}
-                    </div>
-                  </div>
-                  <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow-sm">
-                    <p class="text-gray-500 dark:text-white text-sm uppercase font-semibold tracking-wide">Average Bid</p>
-                    <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-white">${stats.averageBid}</p>
-                  </div>
-                </div>
-              </div>`;
-          }
-
-          let teamStatsTable = "";
-          if (stats.teamsData.length) {
-            teamStatsTable = `
-              <div class="mt-4">
-                <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-2">Team-Based Stats</h3>
-                <div class="overflow-x-auto">
-                  <table class="min-w-full bg-gray-50 dark:bg-gray-700 rounded-xl">
-                    <thead>
-                      <tr class="border-b dark:border-gray-600">
-                        <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700 dark:text-white">Team</th>
-                        <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-white">Games</th>
-                        <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-white">Win %</th>
-                        <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-white">Wins</th>
-                        <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-white">Losses</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      ${teamRows}
-                    </tbody>
-                  </table>
-                </div>
-              </div>`;
-          }
-          content = `${topRow}${teamStatsTable}`;
-        }
-        document.getElementById("statisticsModalContent").innerHTML = content;
-        document.getElementById("statisticsModal").classList.remove("hidden");
-      }
-
-      function closeStatisticsModal() {
-        document.getElementById("statisticsModal").classList.add("hidden");
-        document.getElementById("statisticsModalContent").innerHTML = "";
-      }
-
       function renderGameOverOverlay() {
         if (!state.gameOver) return "";
         const w = state.winner;
@@ -2802,7 +2777,7 @@ function performDataMigration() {
 
       function showVersionNum() {
         alert(
-          "version 1.2.7 adds a feature to track each team's individual performance, moved statistics to the menu, added more statistics, added a new 'Themes' option, various improvements."
+          "version 1.2.9 adds a feature to track each team's individual performance, moved statistics to the menu, added more statistics, added a new 'Themes' option, various improvements."
         );
       }
 
@@ -2814,7 +2789,12 @@ function performDataMigration() {
         document.getElementById("aboutModal").classList.add("hidden");
       }
 
-      let savedGamesModal, viewSavedGameModal, aboutModal, statisticsModal, teamSelectionModal, themeModal;
+      let savedGamesModal,
+        viewSavedGameModal,
+        aboutModal,
+        statisticsModal,
+        teamSelectionModal,
+        themeModal;
       document.addEventListener("DOMContentLoaded", () => {
         const closeViewSavedBtn = document.getElementById("closeViewSavedGameModalBtn");
         if (closeViewSavedBtn) {
@@ -2842,17 +2822,29 @@ function performDataMigration() {
         teamSelectionModal = document.getElementById("teamSelectionModal");
         themeModal = document.getElementById("themeModal");
 
-        performDataMigration(); // Run the migration ONCE on load
+        performDataMigration();
         loadCurrentGameState();
         initializeDarkMode();
         initializeTheme();
         renderApp();
+
+        // NEW EVENT LISTENER FOR THE SLIDER SWITCH
+        const darkModeToggleCheckbox = document.getElementById("darkModeToggle");
+        if (darkModeToggleCheckbox) {
+          darkModeToggleCheckbox.addEventListener("change", (e) => {
+            const isDark = e.target.checked;
+            document.documentElement.classList.toggle("dark", isDark);
+            localStorage.setItem(DARK_MODE_KEY, isDark);
+            updateDarkModeLabel(isDark);
+            updateMetaThemeColor(isDark);
+          });
+        }
       });
 
       document.addEventListener("click", function (e) {
         const confirmationModal = document.getElementById("confirmationModal");
 
-        // If the confirmation modal is open, ignore outside clicks within it
+        // If the confirmation modal is open, ignore inside clicks
         if (
           confirmationModal &&
           !confirmationModal.classList.contains("hidden") &&
@@ -2861,7 +2853,7 @@ function performDataMigration() {
           return;
         }
 
-        // ----- Keep savedGamesModal close logic as is -----
+        // savedGamesModal
         if (
           !savedGamesModal.classList.contains("hidden") &&
           !savedGamesModal.contains(e.target) &&
@@ -2870,7 +2862,7 @@ function performDataMigration() {
           closeSavedGamesModal();
         }
 
-        // If the View Saved Game Modal is open, close if clicked outside
+        // viewSavedGameModal
         if (
           !viewSavedGameModal.classList.contains("hidden") &&
           !viewSavedGameModal.contains(e.target) &&
@@ -2879,7 +2871,7 @@ function performDataMigration() {
           closeViewSavedGameModal();
         }
 
-        // About modal
+        // aboutModal
         if (
           !aboutModal.classList.contains("hidden") &&
           !aboutModal.contains(e.target)
@@ -2887,7 +2879,7 @@ function performDataMigration() {
           closeAboutModal();
         }
 
-        // Statistics modal
+        // statisticsModal
         if (
           !statisticsModal.classList.contains("hidden") &&
           !statisticsModal.contains(e.target)
@@ -2895,16 +2887,253 @@ function performDataMigration() {
           closeStatisticsModal();
         }
 
-        // IMPORTANT: We *do not* automatically close the Team Selection Modal by clicking outside
-        // if the user is in the middle of "save" or "freeze" action. This prevents accidental closure.
-        // If you still want it to close when user clicks outside for normal usage, you can condition it
-        // but here we simply skip closing it altogether unless canceled.
+        // TeamSelectionModal - do not close on outside click automatically
 
-        // Theme modal
+        // themeModal
         if (!themeModal.classList.contains("hidden") && !themeModal.contains(e.target)) {
           closeThemeModal();
         }
       });
+
+      function openStatisticsModal() {
+  const stats = getStatistics();
+  let content = "";
+  if (!stats.totalGames && !stats.teamsData.length) {
+    content =
+      '<p class="text-gray-600 dark:text-white mt-2">No completed games and no teams yet.</p>';
+  } else {
+    // Only display the Average Bid section (overall) if there are any games.
+    let topRow = "";
+    if (stats.totalGames > 0) {
+      topRow = `
+        <div class="grid grid-cols-1 gap-6 mb-8">
+          <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow-sm">
+            <p class="text-gray-500 dark:text-white text-sm uppercase font-semibold tracking-wide">Overall Average Bid</p>
+            <p class="mt-1 text-2xl font-bold text-gray-900 dark:text-white">${stats.overallAverageBid}</p>
+          </div>
+        </div>`;
+    }
+    
+    let teamStatsTable = "";
+    if (stats.teamsData.length) {
+      teamStatsTable = `
+        <div class="mt-4">
+          <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-2">Team-Based Stats</h3>
+          <div class="overflow-x-auto">
+            <table class="min-w-full bg-gray-50 dark:bg-gray-700 rounded-xl">
+              <thead>
+                <tr class="border-b dark:border-gray-600">
+                  <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700 dark:text-white">Team</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-white">Games</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-white">Win %</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-white">Avg Bid</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-white">Bid Success %</th>
+                  <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-white">Hands Won %</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${stats.teamsData
+                  .map((team) => {
+                    return `
+                  <tr class="border-b last:border-0 dark:border-gray-700">
+                    <td class="px-4 py-2 whitespace-nowrap text-gray-700 dark:text-white">
+                      ${team.name}
+                      <button
+                        onclick="handleDeleteTeam('${team.name}'); event.stopPropagation();"
+                        class="text-red-600 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 dark:text-red-300 dark:hover:text-red-500 ml-2 threed"
+                        aria-label="Delete Team"
+                        type="button"
+                      >
+                        ${Icons.Trash}
+                      </button>
+                    </td>
+                    <td class="px-4 py-2 text-center text-gray-700 dark:text-white">${team.gamesPlayed}</td>
+                    <td class="px-4 py-2 text-center text-gray-700 dark:text-white">${team.winPercent}%</td>
+                    <td class="px-4 py-2 text-center text-gray-700 dark:text-white">${team.avgBid}</td>
+                    <td class="px-4 py-2 text-center text-gray-700 dark:text-white">${team.bidSuccessPct}%</td>
+                    <td class="px-4 py-2 text-center text-gray-700 dark:text-white">${team.handsWonPct}%</td>
+                  </tr>`;
+                  })
+                  .join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>`;
+    }
+    content = `${topRow}${teamStatsTable}`;
+  }
+  document.getElementById("statisticsModalContent").innerHTML = content;
+  document.getElementById("statisticsModal").classList.remove("hidden");
+}
+
+      function closeStatisticsModal() {
+        document.getElementById("statisticsModal").classList.add("hidden");
+        document.getElementById("statisticsModalContent").innerHTML = "";
+      }
+
+      function getStatistics() {
+  const savedGames = getLocalStorage("savedGames");
+  const teamsFromStorage = JSON.parse(localStorage.getItem("teams")) || {};
+
+  // Create a map for lastPlayed timestamps.
+  const lastPlayedMap = {};
+  // Aggregator for per-team bidding and hand stats.
+  const aggregator = {};
+
+  savedGames.forEach(game => {
+    // Use provided team names or fall back to defaults.
+    const team1 = game.usTeamName || game.player1 || "Us";
+    const team2 = game.demTeamName || game.player2 || "Dem";
+    const gameTimestamp = new Date(game.timestamp).getTime();
+
+    // Update lastPlayed for both teams.
+    if (!lastPlayedMap[team1] || gameTimestamp > lastPlayedMap[team1]) {
+      lastPlayedMap[team1] = gameTimestamp;
+    }
+    if (!lastPlayedMap[team2] || gameTimestamp > lastPlayedMap[team2]) {
+      lastPlayedMap[team2] = gameTimestamp;
+    }
+
+    // Process each round in this game.
+    (game.rounds || []).forEach(round => {
+      // For team1 (the "us" side)
+      if (!aggregator[team1]) {
+        aggregator[team1] = {
+          totalBidSum: 0,
+          bidCount: 0,
+          bidSuccess: 0,
+          totalHands: 0,
+          handsWon: 0
+        };
+      }
+      aggregator[team1].totalHands++;
+      // If team1 was bidding (round.biddingTeam is "us")
+      if (round.biddingTeam === "us") {
+        aggregator[team1].bidCount++;
+        aggregator[team1].totalBidSum += Number(round.bidAmount);
+        if (Number(round.usPoints) >= Number(round.bidAmount)) {
+          aggregator[team1].bidSuccess++;
+        }
+      }
+      // Determine if team1 won the hand.
+      if (Number(round.usPoints) > Number(round.demPoints)) {
+        aggregator[team1].handsWon++;
+      }
+
+      // For team2 (the "dem" side)
+      if (!aggregator[team2]) {
+        aggregator[team2] = {
+          totalBidSum: 0,
+          bidCount: 0,
+          bidSuccess: 0,
+          totalHands: 0,
+          handsWon: 0
+        };
+      }
+      aggregator[team2].totalHands++;
+      if (round.biddingTeam === "dem") {
+        aggregator[team2].bidCount++;
+        aggregator[team2].totalBidSum += Number(round.bidAmount);
+        if (Number(round.demPoints) >= Number(round.bidAmount)) {
+          aggregator[team2].bidSuccess++;
+        }
+      }
+      if (Number(round.demPoints) > Number(round.usPoints)) {
+        aggregator[team2].handsWon++;
+      }
+    });
+  });
+
+  // Overall saved games stats (for overall average bid).
+  let totalGames = savedGames.length;
+  let bidSum = 0;
+  let bidCount = 0;
+  savedGames.forEach(game => {
+    (game.rounds || []).forEach(r => {
+      if (r.bidAmount) {
+        bidSum += Number(r.bidAmount);
+        bidCount++;
+      }
+    });
+  });
+  // Overall average bid rounded to nearest 5.
+  let overallAverageBid = bidCount > 0 ? Math.round((bidSum / bidCount) / 5) * 5 : 0;
+
+  // Build a union of team names from storage and aggregator.
+  const allTeamNames = new Set([
+    ...Object.keys(teamsFromStorage),
+    ...Object.keys(aggregator)
+  ]);
+
+  // Build teamsData including the new stats.
+  const teamsData = Array.from(allTeamNames).map(teamName => {
+    const storedStats = teamsFromStorage[teamName] || { wins: 0, gamesPlayed: 0 };
+    const agg = aggregator[teamName] || { totalBidSum: 0, bidCount: 0, bidSuccess: 0, totalHands: 0, handsWon: 0 };
+    const winPercent = storedStats.gamesPlayed > 0
+      ? ((storedStats.wins / storedStats.gamesPlayed) * 100).toFixed(2)
+      : "N/A";
+    // Average bid rounded to the nearest 5.
+    const avgBid = agg.bidCount > 0 ? Math.round((agg.totalBidSum / agg.bidCount) / 5) * 5 : "N/A";
+    const bidSuccessPct = agg.bidCount > 0 ? ((agg.bidSuccess / agg.bidCount) * 100).toFixed(2) : "N/A";
+    const handsWonPct = agg.totalHands > 0 ? ((agg.handsWon / agg.totalHands) * 100).toFixed(2) : "N/A";
+
+    return {
+      name: teamName,
+      gamesPlayed: storedStats.gamesPlayed || 0,
+      winPercent,
+      lastPlayed: lastPlayedMap[teamName] || 0,
+      avgBid,
+      bidSuccessPct,
+      handsWonPct
+    };
+  });
+
+  // Sort teamsData so the most recently played teams appear first.
+  teamsData.sort((a, b) => b.lastPlayed - a.lastPlayed);
+
+  return {
+    totalGames,
+    overallAverageBid,
+    teamsData,
+  };
+}
+
+function handleDeleteTeam(teamName) {
+  openConfirmationModal(
+    `Are you sure you want to delete the team "${teamName}" and all associated data?`,
+    () => {
+      // Remove the team from the teams object stored in localStorage.
+      const teams = getTeamsObject();
+      delete teams[teamName];
+      setTeamsObject(teams);
+
+      // Also remove any saved games that involve this team.
+      let savedGames = getLocalStorage("savedGames");
+      savedGames = savedGames.filter(game => {
+        const team1 = game.usTeamName || game.player1 || "Us";
+        const team2 = game.demTeamName || game.player2 || "Dem";
+        return team1 !== teamName && team2 !== teamName;
+      });
+      setLocalStorage("savedGames", savedGames);
+
+      // Remove freezer games that involve this team.
+      let freezerGames = getLocalStorage("freezerGames");
+      freezerGames = freezerGames.filter(game => {
+        const team1 = game.usTeamName || game.usName || "Us";
+        const team2 = game.demTeamName || game.demName || "Dem";
+        return team1 !== teamName && team2 !== teamName;
+      });
+      setLocalStorage("freezerGames", freezerGames);
+
+      closeConfirmationModal();
+      // Reopen the statistics modal to refresh the table.
+      openStatisticsModal();
+    },
+    () => {
+      closeConfirmationModal();
+    }
+  );
+}
 
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
